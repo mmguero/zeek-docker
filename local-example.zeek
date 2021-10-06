@@ -124,4 +124,5 @@ event zeek_init() &priority=-5 {
   redef HTTP::default_capture_password = T;
   redef FTP::default_capture_password = T;
   redef SOCKS::default_capture_password = T;
+  redef LDAP::default_capture_password = T;
 @endif

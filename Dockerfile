@@ -41,8 +41,8 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
 # for download and install
-ARG ZEEK_LTS=1
-ARG ZEEK_VERSION=4.0.4-0
+ARG ZEEK_LTS=
+ARG ZEEK_VERSION=4.1.1-0
 ARG SPICY_VERSION=1.2.1
 
 ENV ZEEK_LTS $ZEEK_LTS
@@ -114,20 +114,21 @@ RUN apt-get -q update && \
       "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-libcaf-dev_${ZEEK_VERSION}_amd64.deb" \
       "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}_${ZEEK_VERSION}_amd64.deb" \
       "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-btest_${ZEEK_VERSION}_amd64.deb" \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-btest-data_${ZEEK_VERSION}_amd64.deb" \
       "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-zkg_${ZEEK_VERSION}_amd64.deb" \
       "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeekctl${ZEEK_LTS}_${ZEEK_VERSION}_amd64.deb" && \
       dpkg -i ./*.deb && \
     mkdir -p /tmp/spicy-packages && \
       cd /tmp/spicy-packages && \
     curl -sSL --remote-name-all \
-      "https://github.com/zeek/spicy/releases/download/v${SPICY_VERSION}/spicy_linux_debian10.deb" && \
+      "https://github.com/zeek/spicy/releases/download/v${SPICY_VERSION}/spicy_linux_debian11.deb" && \
       dpkg -i ./*.deb && \
     cd /tmp && \
     mkdir -p "${CCACHE_DIR}" && \
     zkg autoconfig --force && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
     zkg install --force --skiptests zeek/spicy-plugin && \
-    zkg install --force --skiptests https://github.com/mmguero-dev/spicy-analyzers && \
+    # zkg install --force --skiptests https://github.com/mmguero-dev/spicy-analyzers && \
     ( find "${ZEEK_DIR}"/lib -type d -name CMakeFiles -exec rm -rf "{}" \; 2>/dev/null || true ) && \
     ( find "${ZEEK_DIR}"/var/lib/zkg -type d -name build -exec rm -rf "{}" \; 2>/dev/null || true ) && \
     ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
