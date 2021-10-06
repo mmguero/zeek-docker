@@ -104,6 +104,7 @@ RUN apt-get -q update && \
       python3-setuptools \
       python3-wheel \
       zlib1g-dev && \
+    ln -r -s /usr/bin/clang++-${LLVM_VERSION} /usr/bin/c++ && \
     mkdir -p /tmp/zeek-packages && \
       cd /tmp/zeek-packages && \
       if [ -n "${ZEEK_LTS}" ]; then ZEEK_LTS="-lts"; fi && export ZEEK_LTS && \
@@ -128,7 +129,7 @@ RUN apt-get -q update && \
     zkg autoconfig --force && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
     zkg install --force --skiptests zeek/spicy-plugin && \
-    # zkg install --force --skiptests https://github.com/mmguero-dev/spicy-analyzers && \
+    zkg install --force --skiptests https://github.com/mmguero-dev/spicy-analyzers && \
     ( find "${ZEEK_DIR}"/lib -type d -name CMakeFiles -exec rm -rf "{}" \; 2>/dev/null || true ) && \
     ( find "${ZEEK_DIR}"/var/lib/zkg -type d -name build -exec rm -rf "{}" \; 2>/dev/null || true ) && \
     ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
