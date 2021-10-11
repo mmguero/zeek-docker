@@ -50,7 +50,7 @@ ENV ZEEK_VERSION $ZEEK_VERSION
 ENV SPICY_VERSION $SPICY_VERSION
 
 # for build
-ENV LLVM_VERSION "11"
+ENV LLVM_VERSION "13"
 ENV CC "clang-${LLVM_VERSION}"
 ENV CXX "clang++-${LLVM_VERSION}"
 ENV ASM "clang-${LLVM_VERSION}"
@@ -129,7 +129,7 @@ RUN apt-get -q update && \
     zkg autoconfig --force && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
     zkg install --force --skiptests zeek/spicy-plugin && \
-    zkg install --force --skiptests https://github.com/mmguero-dev/spicy-analyzers && \
+    zkg install --force --skiptests --version=main https://github.com/mmguero-dev/spicy-analyzers && \
     ( find "${ZEEK_DIR}"/lib -type d -name CMakeFiles -exec rm -rf "{}" \; 2>/dev/null || true ) && \
     ( find "${ZEEK_DIR}"/var/lib/zkg -type d -name build -exec rm -rf "{}" \; 2>/dev/null || true ) && \
     ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \

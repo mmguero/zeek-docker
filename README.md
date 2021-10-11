@@ -17,7 +17,7 @@ To understand which local `*.zeek` scripts will be used when we run `zeek-docker
 ```
 user@host tmp › ls -l $(dirname $(realpath $(which zeek-docker.sh)))/
 total 32,768
--rw-r--r-- 1 user user 6,852 Jun  8 07:44 Dockerfile
+-rw-r--r-- 1 user user 6,852 Jun  8 07:44 base.Dockerfile
 -rw-r--r-- 1 user user 1,724 May 18 11:21 local-example.zeek
 -rw-r--r-- 1 user user 8,874 May 18 11:21 login.zeek
 -rw-r--r-- 1 user user 1,689 Jun  8 08:58 README.md
@@ -129,8 +129,8 @@ Note that interrupting `zeek-docker.sh` with **`CTRL+C`** will leave the contain
 
 ```
 user@host tmp › docker ps
-CONTAINER ID   IMAGE                 COMMAND                  CREATED              STATUS              PORTS     NAMES
-df08f961e760   mmguero/zeek:latest   "/usr/local/bin/dock…"   About a minute ago   Up About a minute             flamboyant_spence
+CONTAINER ID   IMAGE                         COMMAND                  CREATED              STATUS              PORTS     NAMES
+df08f961e760   ghcr.io/mmguero/zeek:latest   "/usr/local/bin/dock…"   About a minute ago   Up About a minute             flamboyant_spence
 
 user@host tmp › docker stop flamboyant_spence 
 flamboyant_spence
@@ -163,7 +163,7 @@ For each network interface monitored, a directory (suffixed with `_logs`) will b
      -v "$(pwd):/zeek-logs" \
      --network host \
      --cap-add=NET_ADMIN --cap-add=NET_RAW --cap-add=IPC_LOCK \
-     mmguero/zeek:latest \
+     ghcr.io/mmguero/zeek:latest \
      zeekcap -i enp6s0 local
 ```
 
@@ -173,7 +173,7 @@ For each network interface monitored, a directory (suffixed with `_logs`) will b
    docker run --rm \
      -v "$(pwd):/zeek-logs" \
      -v "/path/containing/pcap:/data:ro" \
-     mmguero/zeek:latest \
+     ghcr.io/mmguero/zeek:latest \
      zeek -C -r /data/foobar.pcap local
 ```
 
@@ -184,7 +184,7 @@ For each network interface monitored, a directory (suffixed with `_logs`) will b
      -v "$(pwd):/zeek-logs" \
      -v "/path/containing/pcap:/data:ro" \
      -v "/path/containing/policy/local-example.zeek:/opt/zeek/share/zeek/site/local.zeek:ro" \
-     mmguero/zeek:latest \
+     ghcr.io/mmguero/zeek:latest \
      zeek -C -r /data/foobar.pcap local
 ```
 
@@ -193,7 +193,7 @@ For each network interface monitored, a directory (suffixed with `_logs`) will b
 Here's an example `Dockerfile` installing [`zeek/spicy-analyzers`](https://github.com/zeek/spicy-analyzers).
 
 ```
-FROM mmguero/zeek:latest
+FROM ghcr.io/mmguero/zeek:latest
 
 RUN zkg install --force spicy-analyzers
 ```
@@ -203,7 +203,7 @@ Build and check:
 ```
 user@host tmp › docker build -t=spicier .
 Sending build context to Docker daemon  2.048kB
-Step 1/2 : FROM mmguero/zeek:latest
+Step 1/2 : FROM ghcr.io/mmguero/zeek:latest
  ---> 1a2ccddc1428
 Step 2/2 : RUN zkg install --force spicy-analyzers
  ---> Running in 9f7121dc5248
