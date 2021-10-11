@@ -9,4 +9,4 @@ LABEL org.opencontainers.image.description='Dockerized Zeek and Spicy with extra
 
 ADD https://raw.githubusercontent.com/mmguero-dev/Malcolm/development/shared/bin/zeek_install_plugins.sh /tmp/zeek_install_plugins.sh
 
-RUN bash /tmp/zeek_install_plugins.sh
+RUN bash /tmp/zeek_install_plugins.sh || true

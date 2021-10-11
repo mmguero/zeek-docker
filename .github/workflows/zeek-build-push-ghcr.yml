@@ -45,3 +45,15 @@ jobs:
           file: ./base.Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/zeek:latest
+      -
+        name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+      -
+        name: Build and push plus image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./plus.Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/zeek-plus:latest
