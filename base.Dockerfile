@@ -58,7 +58,8 @@ ENV ZEEK_DIR "/opt/zeek"
 ENV SPICY_DIR "/opt/spicy"
 ENV PATH "${ZEEK_DIR}/bin:${SPICY_DIR}/bin:${ZEEK_DIR}/lib/zeek/plugins/packages/spicy-plugin/bin:${PATH}"
 
-RUN apt-get -q update && \
+RUN export DEBARCH=$(dpkg --print-architecture) && \
+    apt-get -q update && \
     apt-get install -q -y --no-install-recommends \
       bison \
       ca-certificates \
@@ -72,6 +73,7 @@ RUN apt-get -q update && \
       git \
       gnupg2 \
       jq \
+      linux-headers-$DEBARCH \
       less \
       libcap2-bin \
       libfl-dev \
@@ -99,15 +101,15 @@ RUN apt-get -q update && \
       cd /tmp/zeek-packages && \
       if [ -n "${ZEEK_LTS}" ]; then ZEEK_LTS="-lts"; fi && export ZEEK_LTS && \
       curl -sSL --remote-name-all \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/libbroker${ZEEK_LTS}-dev_${ZEEK_VERSION}_amd64.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-core-dev_${ZEEK_VERSION}_amd64.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-core_${ZEEK_VERSION}_amd64.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-libcaf-dev_${ZEEK_VERSION}_amd64.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}_${ZEEK_VERSION}_amd64.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-btest_${ZEEK_VERSION}_amd64.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-btest-data_${ZEEK_VERSION}_amd64.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-zkg_${ZEEK_VERSION}_amd64.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeekctl${ZEEK_LTS}_${ZEEK_VERSION}_amd64.deb" && \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/libbroker${ZEEK_LTS}-dev_${ZEEK_VERSION}_$DEBARCH.deb" \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-core-dev_${ZEEK_VERSION}_$DEBARCH.deb" \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-core_${ZEEK_VERSION}_$DEBARCH.deb" \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-libcaf-dev_${ZEEK_VERSION}_$DEBARCH.deb" \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}_${ZEEK_VERSION}_$DEBARCH.deb" \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-btest_${ZEEK_VERSION}_$DEBARCH.deb" \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-btest-data_${ZEEK_VERSION}_$DEBARCH.deb" \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-zkg_${ZEEK_VERSION}_$DEBARCH.deb" \
+      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeekctl${ZEEK_LTS}_${ZEEK_VERSION}_$DEBARCH.deb" && \
       dpkg -i ./*.deb && \
     mkdir -p /tmp/spicy-packages && \
       cd /tmp/spicy-packages && \
