@@ -43,17 +43,13 @@ ENV TERM xterm
 # for download and install
 ARG ZEEK_LTS=
 ARG ZEEK_VERSION=4.1.1-0
-ARG SPICY_VERSION=1.2.1
+ARG SPICY_VERSION=1.3.0
 
 ENV ZEEK_LTS $ZEEK_LTS
 ENV ZEEK_VERSION $ZEEK_VERSION
 ENV SPICY_VERSION $SPICY_VERSION
 
 # for build
-ENV LLVM_VERSION "13"
-ENV CC "clang-${LLVM_VERSION}"
-ENV CXX "clang++-${LLVM_VERSION}"
-ENV ASM "clang-${LLVM_VERSION}"
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 
@@ -64,47 +60,41 @@ ENV PATH "${ZEEK_DIR}/bin:${SPICY_DIR}/bin:${ZEEK_DIR}/lib/zeek/plugins/packages
 
 RUN apt-get -q update && \
     apt-get install -q -y --no-install-recommends \
+      bison \
       ca-certificates \
+      ccache \
+      cmake \
       curl \
       file \
+      flex \
+      g++ \
+      gcc \
       git \
       gnupg2 \
       jq \
       less \
       libcap2-bin \
-      moreutils \
-      procps \
-      psmisc \
-      vim-tiny && \
-    ( curl -sSL https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - ) && \
-    echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-${LLVM_VERSION} main" >> /etc/apt/sources.list && \
-    echo "deb-src http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-${LLVM_VERSION} main" >> /etc/apt/sources.list && \
-    apt-get -q update && \
-    apt-get install -q -y --no-install-recommends \
-      bison \
-      ccache \
-      clang-${LLVM_VERSION} \
-      cmake \
-      flex \
-      libclang-${LLVM_VERSION}-dev \
       libfl-dev \
       libmaxminddb-dev \
       libmaxminddb0 \
       libpcap-dev \
       libpcap0.8 \
       libssl-dev \
-      llvm-${LLVM_VERSION}-dev \
       locales-all \
       make \
+      moreutils \
       ninja-build \
+      procps \
+      psmisc \
       python3 \
       python3-git \
       python3-pip \
       python3-semantic-version \
       python3-setuptools \
       python3-wheel \
+      swig \
+      vim-tiny \
       zlib1g-dev && \
-    ln -r -s /usr/bin/clang++-${LLVM_VERSION} /usr/bin/c++ && \
     mkdir -p /tmp/zeek-packages && \
       cd /tmp/zeek-packages && \
       if [ -n "${ZEEK_LTS}" ]; then ZEEK_LTS="-lts"; fi && export ZEEK_LTS && \
