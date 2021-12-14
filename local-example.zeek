@@ -11,7 +11,6 @@ global disable_track_all_assets = (getenv("ZEEK_DISABLE_TRACK_ALL_ASSETS") == ""
 
 global disable_spicy_dhcp = (getenv("ZEEK_DISABLE_SPICY_DHCP") == "") ? F : T;
 global disable_spicy_dns = (getenv("ZEEK_DISABLE_SPICY_DNS") == "") ? F : T;
-global disable_spicy_facefish = (getenv("ZEEK_DISABLE_SPICY_FACEFISH") == "") ? F : T;
 global disable_spicy_http = (getenv("ZEEK_DISABLE_SPICY_HTTP") == "") ? F : T;
 global disable_spicy_ipsec = (getenv("ZEEK_DISABLE_SPICY_IPSEC") == "") ? F : T;
 global disable_spicy_ldap = (getenv("ZEEK_DISABLE_SPICY_LDAP") == "") ? F : T;
@@ -21,6 +20,7 @@ global disable_spicy_tailscale = (getenv("ZEEK_DISABLE_SPICY_TAILSCALE") == "") 
 global disable_spicy_tftp = (getenv("ZEEK_DISABLE_SPICY_TFTP") == "") ? F : T;
 global disable_spicy_wireguard = (getenv("ZEEK_DISABLE_SPICY_WIREGUARD") == "") ? F : T;
 
+redef Broker::default_listen_address = "127.0.0.1";
 redef ignore_checksums = T;
 
 @load tuning/defaults
@@ -61,7 +61,7 @@ redef ignore_checksums = T;
 @endif
 @load policy/protocols/conn/vlan-logging
 @load policy/protocols/conn/mac-logging
-@load policy/protocols/modbus/track-memmap
+# @load policy/protocols/modbus/track-memmap
 @load policy/protocols/modbus/known-masters-slaves
 @load policy/protocols/mqtt
 
@@ -78,9 +78,6 @@ event zeek_init() &priority=-5 {
   }
   if (disable_spicy_dns) {
     Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_DNS);
-  }
-  if (disable_spicy_facefish) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_FACEFISH_ROOTKIT);
   }
   if (disable_spicy_http) {
     Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_HTTP);
@@ -124,5 +121,8 @@ event zeek_init() &priority=-5 {
   redef HTTP::default_capture_password = T;
   redef FTP::default_capture_password = T;
   redef SOCKS::default_capture_password = T;
+  redef SNIFFPASS::log_password_plaintext = T;
   redef LDAP::default_capture_password = T;
 @endif
+redef LDAP::default_log_search_attributes = F;
+redef SNIFFPASS::notice_log_enable = F;
