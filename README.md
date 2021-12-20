@@ -1,5 +1,7 @@
 # Zeek, dockerized
 
+![Docker Image](https://github.com/mmguero/zeek-docker/workflows/zeek-build-push-ghcr.yml/badge.svg)
+
 A simple Docker container for [zeek/zeek](https://github.com/zeek/zeek), including the [zeek/spicy](https://github.com/zeek/spicy) parser generator. The Docker image itself is large-ish (> 1GB) because it retains the build environment packages necessary to build and use spicy plugins.
 
 Also included is a [zeek-docker.sh](zeek-docker.sh) bash wrapper script for running Zeek against a PCAP file or network interface.
