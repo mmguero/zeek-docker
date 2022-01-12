@@ -62,7 +62,7 @@ export DEFAULT_GID=$(id -g)
 
 # process each argument in parallel with xargs (up to $MAX_ZEEK_PROCS or 4 if unspecified)
 
-printf "%s\0" "$@" | $XARGS -0 -n 1 -P ${MAX_ZEEK_PROCS:-4} -I XXX bash -c '
+printf "%s\0" "$@" | $XARGS -0 -P ${MAX_ZEEK_PROCS:-4} -I XXX bash -c '
   IN_FLAG=
   ZEEK_EXE=
   IN_MOUNT=
