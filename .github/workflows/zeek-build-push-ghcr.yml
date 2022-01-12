@@ -57,4 +57,4 @@ jobs:
           context: .
           file: ./plus.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/zeek-plus:latest
+          tags: ghcr.io/${{ github.repository_owner }}/zeek:plus
