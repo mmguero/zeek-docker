@@ -123,6 +123,7 @@ printf "%s\0" "$@" | $XARGS -0 -n 1 -P ${MAX_ZEEK_PROCS:-4} -I XXX bash -c '
     MOUNT_ARGS+=( -v )
     MOUNT_ARGS+=( "$LOCAL_INTEL_DIR":/opt/zeek/share/zeek/site/intel )
     export INTEL_LOAD_FILE=intel_$(echo $RANDOM | md5sum | head -c 20).zeek
+    touch "$LOCAL_INTEL_DIR"/"$INTEL_LOAD_FILE"
     ZEEK_PARAMS+=( /opt/zeek/share/zeek/site/intel/$INTEL_LOAD_FILE )
     ENV_ARGS+=( -e )
     ENV_ARGS+=( INTEL_LOAD_FILE )
