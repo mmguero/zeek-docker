@@ -24,6 +24,9 @@ SCRIPT_PATH="$($DIRNAME $($REALPATH -e "${BASH_SOURCE[0]}"))"
 # we will use them as additional scripts to pass along to zeek in addition
 # to the default "local" policy. However, if any of these files begins
 # with "local", then the default "local" policy will not be used.
+# Similarly, if there is a directory called "intel" in the same
+# location as this script it will be also bind mounted and the intelligence
+# files inside it will be used by zeek.
 pushd $SCRIPT_PATH >/dev/null 2>&1
 LOCAL_SCRIPT=local
 LOCAL_ZEEK_SCRIPTS=()
@@ -34,6 +37,7 @@ for FILE in *.zeek; do
     [[ "$LOCAL_ZEEK_SCRIPT" =~ ^local ]] && LOCAL_SCRIPT=
   fi
 done
+[[ -d ./intel ]] && LOCAL_INTEL_DIR="$($REALPATH -e ./intel)" || LOCAL_INTEL_DIR=
 popd >/dev/null 2>&1
 
 # pass through local environment variables beginning with ZEEK_
@@ -50,6 +54,7 @@ export DIRNAME
 export BASENAME
 export SCRIPT_PATH
 export LOCAL_SCRIPT
+export LOCAL_INTEL_DIR
 export LOCAL_ZEEK_ARGV="$(join_by ':' "${LOCAL_ZEEK_SCRIPTS[@]}")"
 export LOCAL_ZEEK_ENV_ARGV="$(join_by ':' "${LOCAL_ZEEK_ENV_ARGS[@]}")"
 export DEFAULT_UID=$(id -u)
@@ -113,9 +118,24 @@ printf "%s\0" "$@" | $XARGS -0 -n 1 -P ${MAX_ZEEK_PROCS:-4} -I XXX bash -c '
   MOUNT_ARGS+=( -v )
   MOUNT_ARGS+=( "$LOG_DIR":/zeek-logs )
 
+  # mount intel directory if specified and exists
+  if [[ -d "$LOCAL_INTEL_DIR" ]]; then
+    MOUNT_ARGS+=( -v )
+    MOUNT_ARGS+=( "$LOCAL_INTEL_DIR":/opt/zeek/share/zeek/site/intel )
+    export INTEL_LOAD_FILE=intel_$(echo $RANDOM | md5sum | head -c 20).zeek
+    ZEEK_PARAMS+=( /opt/zeek/share/zeek/site/intel/$INTEL_LOAD_FILE )
+    ENV_ARGS+=( -e )
+    ENV_ARGS+=( INTEL_LOAD_FILE )
+  else
+    INTEL_LOAD_FILE=intel_load_unused
+  fi
+
   # run zeek in docker on the provided input
   docker run --rm $NETWORK_MODE \
     -e DEFAULT_UID=$DEFAULT_UID -e DEFAULT_GID=$DEFAULT_GID \
     "${ENV_ARGS[@]}" "${CAP_ARGS[@]}" "${MOUNT_ARGS[@]}" $ZEEK_IMAGE \
     $ZEEK_EXE -C $IN_FLAG $LOCAL_SCRIPT "${ZEEK_PARAMS[@]}"
+
+  # if we generated a temporary load file for intel, delete it
+  [[ -f "$LOCAL_INTEL_DIR"/"$INTEL_LOAD_FILE" ]] && rm -f "$LOCAL_INTEL_DIR"/"$INTEL_LOAD_FILE"
 '

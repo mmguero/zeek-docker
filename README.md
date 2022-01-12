@@ -28,6 +28,10 @@ total 32,768
 
 It looks like `local-example.zeek` and `login.zeek` will be used by `zeek`. Since `local-example.zeek` is prefixed with `local`, the default `local` policy will not be used.
 
+#### Local Intelligence Files
+
+If there is a directory named `intel` in the same absolute path as `zeek-docker.sh`, the docker container enumerates its subdirectories and configures Zeek so that those intelligence files will be automatically loaded. Subdirectories under `intel` which contain their own `__load__.zeek` file will be `@load`-ed as-is, while subdirectories containing "loose" intelligence files will be [loaded](https://docs.zeek.org/en/master/frameworks/intel.html#loading-intelligence) automatically with a `redef Intel::read_files` directive.
+
 #### PCAP files
 
 `zeek` will be run (with up to `$MAX_ZEEK_PROCS` concurrent processes, 4 being the default) for each file specified as arguments to `zeek-docker.sh`:

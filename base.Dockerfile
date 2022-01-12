@@ -168,17 +168,21 @@ ENV ZEEK_DISABLE_SPICY_WIREGUARD ""
 
 ADD https://raw.githubusercontent.com/mmguero/docker/master/shared/docker-uid-gid-setup.sh /usr/local/bin/docker-uid-gid-setup.sh
 ADD login.zeek "${ZEEK_DIR}"/share/zeek/site/
+ADD entrypoint.sh /usr/local/bin/
 
 RUN chmod 755 /usr/local/bin/docker-uid-gid-setup.sh && \
     groupadd --gid ${DEFAULT_GID} ${PUSER} && \
     useradd -m --uid ${DEFAULT_UID} --gid ${DEFAULT_GID} ${PUSER} && \
-    mkdir -p "${ZEEK_LOGS_DIR}" && \
-    chown ${PUSER}:${PGROUP} "${ZEEK_LOGS_DIR}" && \
+    mkdir -p "${ZEEK_LOGS_DIR}" "${ZEEK_DIR}"/share/zeek/site/intel && \
+    touch "${ZEEK_DIR}"/share/zeek/site/intel/__load__.zeek && \
+    chown -R ${PUSER}:${PGROUP} "${ZEEK_LOGS_DIR}" "${ZEEK_DIR}"/share/zeek/site/intel && \
     # make a setcap copy of zeek (zeekcap) for listening on an interface
     cp "${ZEEK_DIR}"/bin/zeek "${ZEEK_DIR}"/bin/zeekcap && \
     chown root:${PGROUP} "${ZEEK_DIR}"/bin/zeekcap && \
     setcap 'CAP_NET_RAW+eip CAP_NET_ADMIN+eip CAP_IPC_LOCK+eip' "${ZEEK_DIR}"/bin/zeekcap
 
+VOLUME ["${ZEEK_DIR}"/share/zeek/site/intel]
+
 WORKDIR "${ZEEK_LOGS_DIR}"
 
-ENTRYPOINT ["/usr/local/bin/docker-uid-gid-setup.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-uid-gid-setup.sh", "/usr/local/bin/entrypoint.sh"]
