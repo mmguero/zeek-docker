@@ -32,7 +32,7 @@ EOF
             # this directory contains "loose" intel files we'll need to load explicitly
             while IFS= read -r line; do
                 LOOSE_INTEL_FILES+=( "$line" )
-            done < <( find "${INTEL_DIR}/${DIR}" -type f 2>/dev/null )
+            done < <( find "${INTEL_DIR}/${DIR}" -type f ! -name ".*" 2>/dev/null )
         fi
     done
 
