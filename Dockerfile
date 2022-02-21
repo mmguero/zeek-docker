@@ -102,6 +102,7 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
       git \
       gnupg2 \
       jq \
+      libgoogle-perftools-dev \
       linux-headers-$DEBARCH \
       less \
       libcap2-bin \
@@ -128,13 +129,9 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
       zlib1g-dev && \
     cd /tmp && \
     mkdir -p "${CCACHE_DIR}" && \
+    pip3 install --no-cache-dir zkg btest pre-commit && \
     zkg autoconfig --force && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
-    ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) && \
-    ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
-    rm -rf "${ZEEK_DIR}"/var/lib/zkg/scratch && \
-    rm -rf "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
-    ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -l -r strip --strip-unneeded ) && \
     cd /usr/lib/locale && \
       ( ls | grep -Piv "^(en|en_US|en_US\.utf-?8|C\.utf-?8)$" | xargs -l -r rm -rf ) && \
     cd /tmp && \
@@ -159,21 +156,17 @@ ENV ZEEK_DISABLE_SSL_VALIDATE_CERTS ""
 ENV ZEEK_DISABLE_TRACK_ALL_ASSETS ""
 
 ADD https://raw.githubusercontent.com/mmguero/docker/master/shared/docker-uid-gid-setup.sh /usr/local/bin/docker-uid-gid-setup.sh
-ADD login.zeek "${ZEEK_DIR}"/share/zeek/site/
 ADD entrypoint.sh /usr/local/bin/
 
 RUN chmod 755 /usr/local/bin/docker-uid-gid-setup.sh && \
     groupadd --gid ${DEFAULT_GID} ${PUSER} && \
     useradd -m --uid ${DEFAULT_UID} --gid ${DEFAULT_GID} ${PUSER} && \
-    mkdir -p "${ZEEK_LOGS_DIR}" "${ZEEK_DIR}"/share/zeek/site/intel && \
-    touch "${ZEEK_DIR}"/share/zeek/site/intel/__load__.zeek && \
-    chown -R ${PUSER}:${PGROUP} "${ZEEK_LOGS_DIR}" "${ZEEK_DIR}"/share/zeek/site/intel && \
+    mkdir -p "${ZEEK_LOGS_DIR}" && \
+    chown -R ${PUSER}:${PGROUP} "${ZEEK_LOGS_DIR}" && \
     # make a setcap copy of zeek (zeekcap) for listening on an interface
     cp "${ZEEK_DIR}"/bin/zeek "${ZEEK_DIR}"/bin/zeekcap && \
     chown root:${PGROUP} "${ZEEK_DIR}"/bin/zeekcap && \
     setcap 'CAP_NET_RAW+eip CAP_NET_ADMIN+eip CAP_IPC_LOCK+eip' "${ZEEK_DIR}"/bin/zeekcap
-
-VOLUME ["${ZEEK_DIR}"/share/zeek/site/intel]
 
 WORKDIR "${ZEEK_LOGS_DIR}"
 
