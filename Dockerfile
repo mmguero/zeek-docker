@@ -83,7 +83,10 @@ ENV CCACHE_COMPRESS 1
 
 # put Zeek in PATH
 ENV ZEEK_DIR "/opt/zeek"
-ENV PATH "${ZEEK_DIR}/bin:${PATH}"
+ENV SPICY_VERSION "1.3.0"
+ENV SPICY_DIR "/opt/spicy"
+
+ENV PATH "${ZEEK_DIR}/bin:${SPICY_DIR}/bin:${ZEEK_DIR}/lib/zeek/plugins/packages/spicy-plugin/bin:${PATH}"
 
 COPY --from=build ${ZEEK_DIR} ${ZEEK_DIR}
 
@@ -127,11 +130,23 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
       swig \
       vim-tiny \
       zlib1g-dev && \
+    mkdir -p /tmp/spicy-packages && \
+      cd /tmp/spicy-packages && \
+      curl -sSL --remote-name-all \
+      "https://github.com/zeek/spicy/releases/download/v${SPICY_VERSION}/spicy_linux_debian11.deb" && \
+      dpkg -i ./*.deb && \
     cd /tmp && \
     mkdir -p "${CCACHE_DIR}" && \
     pip3 install --no-cache-dir zkg btest pre-commit && \
     zkg autoconfig --force && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
+    zkg install --force --skiptests zeek/spicy-plugin && \
+    mkdir -p "${ZEEK_DIR}"/var/lib/zkg/clones/package/spicy-plugin/build/plugin/bin/ && \
+      ln -s -r "${ZEEK_DIR}"/lib/zeek/plugins/packages/spicy-plugin/bin/spicyz \
+               "${ZEEK_DIR}"/var/lib/zkg/clones/package/spicy-plugin/build/plugin/bin/spicyz && \
+    mkdir -p "${ZEEK_DIR}"/var/lib/zkg/clones/package/spicy-plugin/plugin/lib/ && \
+      ln -s -r "${ZEEK_DIR}"/lib/zeek/plugins/packages/spicy-plugin/lib/bif \
+               "${ZEEK_DIR}"/var/lib/zkg/clones/package/spicy-plugin/plugin/lib/bif && \
     cd /usr/lib/locale && \
       ( ls | grep -Piv "^(en|en_US|en_US\.utf-?8|C\.utf-?8)$" | xargs -l -r rm -rf ) && \
     cd /tmp && \
