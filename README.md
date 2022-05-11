@@ -248,4 +248,4 @@ _Zeek::Spicy - Support for Spicy parsers (*.spicy, *.evt, *.hlto) (dynamic, vers
 …
 ```
 
-After building your derivative image, you could run it directly or run `zeek-docker.sh` with a `ZEEK_DOCKER_IMAGE` environment variable containing the name of your image.
+After building your derivative image, you could run it directly or run `zeek-docker.sh` with a `ZEEK_IMAGE` environment variable containing the name of your image.

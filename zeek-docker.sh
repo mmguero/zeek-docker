@@ -8,8 +8,8 @@ ENCODING="utf-8"
 
 function join_by { local IFS="$1"; shift; echo "$*"; }
 
-# Not sure how this would actually work on macOS yet since Docker is in a VM, but
-# let's assume somehow it magically would at least for plumbing's sake.
+# Not sure how this would actually work on macOS yet since the container would
+# be in a VM, but let's assume somehow it magically would at least for plumbing's sake.
 [[ "$(uname -s)" = 'Darwin' ]] && REALPATH=grealpath || REALPATH=realpath
 [[ "$(uname -s)" = 'Darwin' ]] && DIRNAME=gdirname || DIRNAME=dirname
 [[ "$(uname -s)" = 'Darwin' ]] && BASENAME=gbasename || BASENAME=basename
@@ -47,7 +47,16 @@ while IFS='=' read -r ZEEK_ENV_VAR value ; do
     LOCAL_ZEEK_ENV_ARGS+=( "$ZEEK_ENV_VAR=${!ZEEK_ENV_VAR}" )
   fi
 done < <(env)
-export ZEEK_IMAGE=${ZEEK_DOCKER_IMAGE:-ghcr.io/mmguero/zeek:latest}
+
+export ZEEK_IMAGE=${ZEEK_IMAGE:-ghcr.io/mmguero/zeek:latest}
+export CONTAINER_ENGINE="${CONTAINER_ENGINE:-docker}"
+if [[ "$CONTAINER_ENGINE" == "podman" ]]; then
+  export DEFAULT_UID=0
+  export DEFAULT_GID=0
+else
+  export DEFAULT_UID=$(id -u)
+  export DEFAULT_GID=$(id -g)
+fi
 
 export REALPATH
 export DIRNAME
@@ -57,8 +66,7 @@ export LOCAL_SCRIPT
 export LOCAL_INTEL_DIR
 export LOCAL_ZEEK_ARGV="$(join_by ':' "${LOCAL_ZEEK_SCRIPTS[@]}")"
 export LOCAL_ZEEK_ENV_ARGV="$(join_by ':' "${LOCAL_ZEEK_ENV_ARGS[@]}")"
-export DEFAULT_UID=$(id -u)
-export DEFAULT_GID=$(id -g)
+
 
 # process each argument in parallel with xargs (up to $MAX_ZEEK_PROCS or 4 if unspecified)
 
@@ -79,7 +87,7 @@ printf "%s\0" "$@" | $XARGS -0 -P ${MAX_ZEEK_PROCS:-4} -I XXX bash -c '
     IN_FLAG="-r "/data/$($BASENAME "XXX")""
 
   elif [[ "$(uname -s)" = "Darwin" ]] && ( networksetup -listallhardwareports | grep -q "^Device: XXX" ); then
-    # macOS and this is an interface (ignoring the whole docker-in-a-VM issue)
+    # macOS and this is an interface (ignoring the whole in-a-VM issue)
     IN_FLAG="-i XXX"
     ZEEK_EXE="zeekcap"
     CAP_ARGS=(--cap-add=NET_ADMIN --cap-add=NET_RAW --cap-add=IPC_LOCK)
@@ -131,8 +139,8 @@ printf "%s\0" "$@" | $XARGS -0 -P ${MAX_ZEEK_PROCS:-4} -I XXX bash -c '
     INTEL_LOAD_FILE=intel_load_unused
   fi
 
-  # run zeek in docker on the provided input
-  docker run --rm $NETWORK_MODE \
+  # run zeek in a container on the provided input
+  $CONTAINER_ENGINE run --rm $NETWORK_MODE \
     -e DEFAULT_UID=$DEFAULT_UID -e DEFAULT_GID=$DEFAULT_GID \
     "${ENV_ARGS[@]}" "${CAP_ARGS[@]}" "${MOUNT_ARGS[@]}" $ZEEK_IMAGE \
     $ZEEK_EXE -C $IN_FLAG $LOCAL_SCRIPT "${ZEEK_PARAMS[@]}"
