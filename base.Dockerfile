@@ -182,7 +182,7 @@ RUN chmod 755 /usr/local/bin/docker-uid-gid-setup.sh && \
     chown root:${PGROUP} "${ZEEK_DIR}"/bin/zeekcap && \
     setcap 'CAP_NET_RAW+eip CAP_NET_ADMIN+eip CAP_IPC_LOCK+eip' "${ZEEK_DIR}"/bin/zeekcap
 
-VOLUME ["${ZEEK_DIR}"/share/zeek/site/intel]
+VOLUME "${ZEEK_DIR}/share/zeek/site/intel"
 
 WORKDIR "${ZEEK_LOGS_DIR}"
 
