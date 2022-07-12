@@ -42,12 +42,10 @@ ENV TERM xterm
 
 # for download and install
 ARG ZEEK_LTS=
-ARG ZEEK_VERSION=4.2.2-0
-ARG SPICY_VERSION=1.4.1
+ARG ZEEK_VERSION=5.0.0-0
 
 ENV ZEEK_LTS $ZEEK_LTS
 ENV ZEEK_VERSION $ZEEK_VERSION
-ENV SPICY_VERSION $SPICY_VERSION
 
 # for build
 ENV CCACHE_DIR "/var/spool/ccache"
@@ -55,11 +53,11 @@ ENV CCACHE_COMPRESS 1
 
 # put Zeek and Spicy in PATH
 ENV ZEEK_DIR "/opt/zeek"
-ENV SPICY_DIR "/opt/spicy"
-ENV PATH "${ZEEK_DIR}/bin:${SPICY_DIR}/bin:${ZEEK_DIR}/lib/zeek/plugins/packages/spicy-plugin/bin:${PATH}"
+ENV PATH "${ZEEK_DIR}/bin:${PATH}"
 
 RUN export DEBARCH=$(dpkg --print-architecture) && \
     apt-get -q update && \
+    apt-get -y -q --no-install-recommends upgrade && \
     apt-get install -q -y --no-install-recommends \
       bison \
       ca-certificates \
@@ -75,13 +73,18 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
       jq \
       linux-headers-$DEBARCH \
       less \
+      libatomic1 \
       libcap2-bin \
       libfl-dev \
+      libgoogle-perftools4 \
+      libkrb5-3 \
       libmaxminddb-dev \
       libmaxminddb0 \
       libpcap-dev \
       libpcap0.8 \
       libssl-dev \
+      libtcmalloc-minimal4 \
+      libunwind8 \
       locales-all \
       make \
       moreutils \
@@ -101,37 +104,26 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
       cd /tmp/zeek-packages && \
       if [ -n "${ZEEK_LTS}" ]; then ZEEK_LTS="-lts"; fi && export ZEEK_LTS && \
       curl -sSL --remote-name-all \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/libbroker${ZEEK_LTS}-dev_${ZEEK_VERSION}_$DEBARCH.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-core-dev_${ZEEK_VERSION}_$DEBARCH.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-core_${ZEEK_VERSION}_$DEBARCH.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-libcaf-dev_${ZEEK_VERSION}_$DEBARCH.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}_${ZEEK_VERSION}_$DEBARCH.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-btest_${ZEEK_VERSION}_$DEBARCH.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-btest-data_${ZEEK_VERSION}_$DEBARCH.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeek${ZEEK_LTS}-zkg_${ZEEK_VERSION}_$DEBARCH.deb" \
-      "https://download.opensuse.org/repositories/security:/zeek/Debian_11/$DEBARCH/zeekctl${ZEEK_LTS}_${ZEEK_VERSION}_$DEBARCH.deb" && \
-      dpkg -i ./*.deb && \
-    mkdir -p /tmp/spicy-packages && \
-      cd /tmp/spicy-packages && \
-    curl -sSL --remote-name-all \
-      "https://github.com/zeek/spicy/releases/download/v${SPICY_VERSION}/spicy_linux_debian11.deb" && \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/libbroker${ZEEK_LTS}-dev_${ZEEK_VERSION}_amd64.deb" \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-core-dev_${ZEEK_VERSION}_amd64.deb" \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-core_${ZEEK_VERSION}_amd64.deb" \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-spicy-dev_${ZEEK_VERSION}_amd64.deb" \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}_${ZEEK_VERSION}_amd64.deb" \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeekctl${ZEEK_LTS}_${ZEEK_VERSION}_amd64.deb" \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/all/zeek${ZEEK_LTS}-client_${ZEEK_VERSION}_all.deb" \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/all/zeek${ZEEK_LTS}-zkg_${ZEEK_VERSION}_all.deb" \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/all/zeek${ZEEK_LTS}-btest_${ZEEK_VERSION}_all.deb" \
+        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/all/zeek${ZEEK_LTS}-btest-data_${ZEEK_VERSION}_all.deb" && \
       dpkg -i ./*.deb && \
     cd /tmp && \
     mkdir -p "${CCACHE_DIR}" && \
     zkg autoconfig --force && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
-    zkg install --force --skiptests zeek/spicy-plugin && \
     ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) && \
     ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
     rm -rf "${ZEEK_DIR}"/var/lib/zkg/scratch && \
     rm -rf "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
-    ( find "${ZEEK_DIR}/" "${SPICY_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -l -r strip --strip-unneeded ) && \
-    mkdir -p "${ZEEK_DIR}"/var/lib/zkg/clones/package/spicy-plugin/build/plugin/bin/ && \
-      ln -s -r "${ZEEK_DIR}"/lib/zeek/plugins/packages/spicy-plugin/bin/spicyz \
-               "${ZEEK_DIR}"/var/lib/zkg/clones/package/spicy-plugin/build/plugin/bin/spicyz && \
-    mkdir -p "${ZEEK_DIR}"/var/lib/zkg/clones/package/spicy-plugin/plugin/lib/ && \
-      ln -s -r "${ZEEK_DIR}"/lib/zeek/plugins/packages/spicy-plugin/lib/bif \
-               "${ZEEK_DIR}"/var/lib/zkg/clones/package/spicy-plugin/plugin/lib/bif && \
+    ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -l -r strip --strip-unneeded ) && \
     ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true ) && \
     cd /usr/lib/locale && \
       ( ls | grep -Piv "^(en|en_US|en_US\.utf-?8|C\.utf-?8)$" | xargs -l -r rm -rf ) && \

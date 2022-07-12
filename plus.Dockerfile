@@ -13,8 +13,7 @@ ENV CCACHE_COMPRESS 1
 
 # put Zeek and Spicy in PATH
 ENV ZEEK_DIR "/opt/zeek"
-ENV SPICY_DIR "/opt/spicy"
-ENV PATH "${ZEEK_DIR}/bin:${SPICY_DIR}/bin:${ZEEK_DIR}/lib/zeek/plugins/packages/spicy-plugin/bin:${PATH}"
+ENV PATH "${ZEEK_DIR}/bin:${PATH}"
 
 RUN curl -fsSL -o /tmp/zeek_install_plugins.sh "https://raw.githubusercontent.com/mmguero-dev/Malcolm/development/shared/bin/zeek_install_plugins.sh" && \
     bash /tmp/zeek_install_plugins.sh && \
