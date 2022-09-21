@@ -42,7 +42,7 @@ ENV TERM xterm
 
 # for download and install
 ARG ZEEK_LTS=
-ARG ZEEK_VERSION=5.0.1-0
+ARG ZEEK_VERSION=5.0.2-0
 
 ENV ZEEK_LTS $ZEEK_LTS
 ENV ZEEK_VERSION $ZEEK_VERSION
@@ -98,6 +98,7 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
       python3-setuptools \
       python3-wheel \
       swig \
+      tini \
       vim-tiny \
       zlib1g-dev && \
     mkdir -p /tmp/zeek-packages && \
@@ -178,4 +179,4 @@ VOLUME "${ZEEK_DIR}/share/zeek/site/intel"
 
 WORKDIR "${ZEEK_LOGS_DIR}"
 
-ENTRYPOINT ["/usr/local/bin/docker-uid-gid-setup.sh", "/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini" "--", "/usr/local/bin/docker-uid-gid-setup.sh", "/usr/local/bin/entrypoint.sh"]
