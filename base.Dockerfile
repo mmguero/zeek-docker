@@ -55,8 +55,7 @@ ENV CCACHE_COMPRESS 1
 ENV ZEEK_DIR "/opt/zeek"
 ENV PATH "${ZEEK_DIR}/bin:${PATH}"
 
-RUN export DEBARCH=$(dpkg --print-architecture) && \
-    apt-get -q update && \
+RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
     apt-get install -q -y --no-install-recommends \
       bison \
@@ -71,7 +70,6 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
       git \
       gnupg2 \
       jq \
-      linux-headers-$DEBARCH \
       less \
       libatomic1 \
       libcap2-bin \
