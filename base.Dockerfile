@@ -177,4 +177,4 @@ VOLUME "${ZEEK_DIR}/share/zeek/site/intel"
 
 WORKDIR "${ZEEK_LOGS_DIR}"
 
-ENTRYPOINT ["/usr/bin/tini" "--", "/usr/local/bin/docker-uid-gid-setup.sh", "/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-uid-gid-setup.sh", "/usr/local/bin/entrypoint.sh"]
