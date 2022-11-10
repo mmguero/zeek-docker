@@ -41,7 +41,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
 # for download and install
-ARG ZEEK_LTS=
+ARG ZEEK_LTS=true
 ARG ZEEK_VERSION=5.0.3-0
 
 ENV ZEEK_LTS $ZEEK_LTS
