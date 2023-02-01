@@ -22,5 +22,5 @@ RUN curl -fsSL -o /tmp/zeek_install_plugins.sh "https://raw.githubusercontent.co
     rm -rf /tmp/zeek_install_plugins.sh \
            "${ZEEK_DIR}"/var/lib/zkg/scratch \
            "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
-    ( find "${ZEEK_DIR}/" "${SPICY_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -r -l -r strip --strip-unneeded ) && \
+    ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -r -l -r strip --strip-unneeded ) && \
     ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true )
