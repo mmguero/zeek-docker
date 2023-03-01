@@ -52,6 +52,13 @@ root@791d31a613e1:/zeek-logs# echo -e 'function tcpbytes()
   PCAPFILE="$1"
   FRAME="$2"
   tshark -r "$PCAPFILE" -e "tcp.payload" -Tfields -Y frame.number=="$FRAME" | sed "s/://g" | xxd -r -p
+}
+
+function tcpstream()
+{
+  PCAPFILE="$1"
+  STREAMID="$2"
+  tshark -r "$PCAPFILE" -e "tcp.payload" -Tfields -Y tcp.stream=="$STREAMID" | sed "s/://g" | xxd -r -p
 }' > tcpbytes.func && source tcpbytes.func && rm -f tcpbytes.func
 ```
 
@@ -122,6 +129,13 @@ HTTP::Request {
     delivery_mode: EndOfData
   }
 }
+```
+
+* Or, identify the TCP stream ID you want to test (using wireshark) and send it to `spicy-dump`:
+
+```
+root@791d31a613e1:/spicy-http/analyzer# tcpstream /spicy-http/tests/traces/http-non-default-port.pcap 0 | spicy-dump -P -p HTTP::Requests /spicy-http/analyzer/analyzer.spicy
+...
 ```
 
 * Repeat as necessary as you develop your parser code
