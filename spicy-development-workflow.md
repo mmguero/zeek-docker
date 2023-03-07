@@ -54,11 +54,25 @@ root@791d31a613e1:/zeek-logs# echo -e 'function tcpbytes()
   tshark -r "$PCAPFILE" -e "tcp.payload" -Tfields -Y frame.number=="$FRAME" | sed "s/://g" | xxd -r -p
 }
 
+function udpbytes()
+{
+  PCAPFILE="$1"
+  FRAME="$2"
+  tshark -r "$PCAPFILE" -e "udp.payload" -Tfields -Y frame.number=="$FRAME" | sed "s/://g" | xxd -r -p
+}
+
 function tcpstream()
 {
   PCAPFILE="$1"
   STREAMID="$2"
   tshark -r "$PCAPFILE" -e "tcp.payload" -Tfields -Y tcp.stream=="$STREAMID" | sed "s/://g" | xxd -r -p
+}
+
+function udpstream()
+{
+  PCAPFILE="$1"
+  STREAMID="$2"
+  tshark -r "$PCAPFILE" -e "udp.payload" -Tfields -Y udp.stream=="$STREAMID" | sed "s/://g" | xxd -r -p
 }' > tcpbytes.func && source tcpbytes.func && rm -f tcpbytes.func
 ```
 
