@@ -28,7 +28,7 @@
 #     mmguero/zeek:latest \
 #     zeek -C -r /data/foobar.pcap local
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 LABEL maintainer="mero.mero.guero@gmail.com"
 LABEL org.opencontainers.image.authors='mero.mero.guero@gmail.com'
