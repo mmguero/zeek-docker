@@ -59,8 +59,10 @@ jobs:
           image: ${{ env.IMAGE_NAME }}
           tags: latest
           context: ${{ env.REPO_CONTEXT }}
-          target: base
+          layers: true
           containerfiles: ${{ env.REPO_CONTAINERFILE }}
+          extra-args: |
+            target=base
           build-args: |
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           archs: ${{ env.IMAGE_ARCH }}
@@ -72,8 +74,9 @@ jobs:
           image: ${{ env.IMAGE_NAME }}
           tags: plus
           context: ${{ env.REPO_CONTEXT }}
-          target: plus
           containerfiles: ${{ env.REPO_CONTAINERFILE }}
+          extra-args: |
+            target=plus
           build-args: |
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           archs: ${{ env.IMAGE_ARCH }}
