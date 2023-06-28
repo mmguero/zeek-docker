@@ -107,17 +107,23 @@ RUN apt-get -q update && \
       cd /tmp/zeek-packages && \
       if [ -n "${ZEEK_LTS}" ]; then ZEEK_LTS="-lts"; fi && export ZEEK_LTS && \
       if [ -n "${ZEEK_RC}" ]; then ZEEK_RC="-rc"; ln -s -r "${ZEEK_DIR}${ZEEK_RC}" "${ZEEK_DIR}"; fi && export ZEEK_RC && \
-      if [ -n "${ZEEK_DBG}" ]; then ZEEK_DBG="-dbgsym"; fi && export ZEEK_DBG && \
         curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-btest-data_6.0.0-0_all.deb" && \
         curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-btest_6.0.0-0_all.deb" && \
         curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-client_6.0.0-0_all.deb" && \
         curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-zkg_6.0.0-0_all.deb" && \
         curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/libbroker${ZEEK_LTS}${ZEEK_RC}-dev_6.0.0-0_amd64.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core-dev${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-spicy-dev${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
         curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}_6.0.0-0_amd64.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeekctl${ZEEK_LTS}${ZEEK_RC}${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core_6.0.0-0_amd64.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core-dev_6.0.0-0_amd64.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-spicy-dev_6.0.0-0_amd64.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeekctl${ZEEK_LTS}${ZEEK_RC}_6.0.0-0_amd64.deb" && \
+        if [ -n "${ZEEK_DBG}" ]; then \
+            ZEEK_DBG="-dbgsym" && export ZEEK_DBG && \
+            curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
+            curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core-dev${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
+            curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-spicy-dev${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
+            curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeekctl${ZEEK_LTS}${ZEEK_RC}${ZEEK_DBG}_6.0.0-0_amd64.deb"; \
+        fi && \
       dpkg -i ./*.deb && \
     cd /tmp && \
     mkdir -p "${CCACHE_DIR}" && \
