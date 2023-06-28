@@ -28,7 +28,7 @@
 #     mmguero/zeek:latest \
 #     zeek -C -r /data/foobar.pcap local
 
-FROM debian:bullseye-slim
+FROM debian:12-slim as base
 
 LABEL maintainer="mero.mero.guero@gmail.com"
 LABEL org.opencontainers.image.authors='mero.mero.guero@gmail.com'
@@ -42,9 +42,13 @@ ENV TERM xterm
 
 # for download and install
 ARG ZEEK_LTS=
-ARG ZEEK_VERSION=5.2.2-0
+ARG ZEEK_RC=true
+ARG ZEEK_DBG=
+ARG ZEEK_VERSION=6.0.0-0
 
 ENV ZEEK_LTS $ZEEK_LTS
+ENV ZEEK_RC $ZEEK_RC
+ENV ZEEK_DBG $ZEEK_DBG
 ENV ZEEK_VERSION $ZEEK_VERSION
 
 # for build
@@ -102,17 +106,18 @@ RUN apt-get -q update && \
     mkdir -p /tmp/zeek-packages && \
       cd /tmp/zeek-packages && \
       if [ -n "${ZEEK_LTS}" ]; then ZEEK_LTS="-lts"; fi && export ZEEK_LTS && \
-      curl -sSL --remote-name-all \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/libbroker${ZEEK_LTS}-dev_${ZEEK_VERSION}_amd64.deb" \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-core-dev_${ZEEK_VERSION}_amd64.deb" \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-core_${ZEEK_VERSION}_amd64.deb" \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}-spicy-dev_${ZEEK_VERSION}_amd64.deb" \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeek${ZEEK_LTS}_${ZEEK_VERSION}_amd64.deb" \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/amd64/zeekctl${ZEEK_LTS}_${ZEEK_VERSION}_amd64.deb" \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/all/zeek${ZEEK_LTS}-client_${ZEEK_VERSION}_all.deb" \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/all/zeek${ZEEK_LTS}-zkg_${ZEEK_VERSION}_all.deb" \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/all/zeek${ZEEK_LTS}-btest_${ZEEK_VERSION}_all.deb" \
-        "https://download.opensuse.org/repositories/security:/zeek/Debian_11/all/zeek${ZEEK_LTS}-btest-data_${ZEEK_VERSION}_all.deb" && \
+      if [ -n "${ZEEK_RC}" ]; then ZEEK_RC="-rc"; ln -s -r "${ZEEK_DIR}${ZEEK_RC}" "${ZEEK_DIR}"; fi && export ZEEK_RC && \
+      if [ -n "${ZEEK_DBG}" ]; then ZEEK_DBG="-dbgsym"; fi && export ZEEK_DBG && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-btest-data_6.0.0-0_all.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-btest_6.0.0-0_all.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-client_6.0.0-0_all.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-zkg_6.0.0-0_all.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/libbroker${ZEEK_LTS}${ZEEK_RC}-dev_6.0.0-0_amd64.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core-dev${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-spicy-dev${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}_6.0.0-0_amd64.deb" && \
+        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeekctl${ZEEK_LTS}${ZEEK_RC}${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
       dpkg -i ./*.deb && \
     cd /tmp && \
     mkdir -p "${CCACHE_DIR}" && \
@@ -178,3 +183,33 @@ VOLUME "${ZEEK_DIR}/share/zeek/site/intel"
 WORKDIR "${ZEEK_LOGS_DIR}"
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-uid-gid-setup.sh", "/usr/local/bin/entrypoint.sh"]
+
+FROM base as plus
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV TERM xterm
+
+LABEL maintainer="mero.mero.guero@gmail.com"
+LABEL org.opencontainers.image.authors='mero.mero.guero@gmail.com'
+LABEL org.opencontainers.image.url='https://github.com/mmguero/zeek-docker'
+LABEL org.opencontainers.image.source='https://github.com/mmguero/zeek-docker'
+LABEL org.opencontainers.image.title='ghcr.io/mmguero/zeek:plus'
+LABEL org.opencontainers.image.description='Dockerized Zeek and Spicy with extra plugins'
+
+# for build
+ENV CCACHE_DIR "/var/spool/ccache"
+ENV CCACHE_COMPRESS 1
+
+# put Zeek and Spicy in PATH
+ENV ZEEK_DIR "/opt/zeek"
+ENV PATH "${ZEEK_DIR}/bin:${PATH}"
+
+RUN curl -fsSL -o /tmp/zeek_install_plugins.sh "https://raw.githubusercontent.com/mmguero-dev/Malcolm/development/shared/bin/zeek_install_plugins.sh" && \
+    bash /tmp/zeek_install_plugins.sh && \
+    ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -r -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) && \
+    ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
+    rm -rf /tmp/zeek_install_plugins.sh \
+           "${ZEEK_DIR}"/var/lib/zkg/scratch \
+           "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
+    ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -r -l -r strip --strip-unneeded ) && \
+    ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true )
