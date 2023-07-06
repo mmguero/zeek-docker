@@ -51,10 +51,6 @@ ENV ZEEK_RC $ZEEK_RC
 ENV ZEEK_DBG $ZEEK_DBG
 ENV ZEEK_VERSION $ZEEK_VERSION
 
-# for build
-ENV CCACHE_DIR "/var/spool/ccache"
-ENV CCACHE_COMPRESS 1
-
 # put Zeek and Spicy in PATH
 ENV ZEEK_DIR "/opt/zeek"
 ENV PATH "${ZEEK_DIR}/bin:${PATH}"
@@ -62,47 +58,14 @@ ENV PATH "${ZEEK_DIR}/bin:${PATH}"
 RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
     apt-get install -q -y --no-install-recommends \
-      bison \
-      ca-certificates \
-      ccache \
-      cmake \
-      curl \
-      file \
-      flex \
-      g++ \
-      gcc \
-      git \
-      gnupg2 \
-      jq \
-      less \
-      libatomic1 \
-      libcap2-bin \
-      libfl-dev \
-      libgoogle-perftools4 \
-      libkrb5-3 \
-      libmaxminddb-dev \
-      libmaxminddb0 \
-      libpcap-dev \
-      libpcap0.8 \
-      libssl-dev \
-      libtcmalloc-minimal4 \
-      libunwind8 \
-      locales-all \
-      make \
-      moreutils \
-      ninja-build \
-      procps \
-      psmisc \
-      python3 \
-      python3-git \
-      python3-pip \
-      python3-semantic-version \
-      python3-setuptools \
-      python3-wheel \
-      swig \
-      tini \
-      vim-tiny \
-      zlib1g-dev && \
+        ca-certificates \
+        cmake \
+        curl \
+        g++ \
+        libcap2-bin \
+        openssl \
+        rsync \
+        tini && \
     mkdir -p /tmp/zeek-packages && \
       cd /tmp/zeek-packages && \
       if [ -n "${ZEEK_LTS}" ]; then ZEEK_LTS="-lts"; fi && export ZEEK_LTS && \
@@ -124,21 +87,16 @@ RUN apt-get -q update && \
             curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-spicy-dev${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
             curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeekctl${ZEEK_LTS}${ZEEK_RC}${ZEEK_DBG}_6.0.0-0_amd64.deb"; \
         fi && \
-      dpkg -i ./*.deb && \
+      ( dpkg -i ./*.deb || apt-get -f -q -y --no-install-recommends install ) && \
     cd /tmp && \
-    mkdir -p "${CCACHE_DIR}" && \
     zkg autoconfig --force && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
-    ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) && \
-        ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
-        rm -rf "${ZEEK_DIR}"/var/lib/zkg/scratch && \
-        rm -rf "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
-        ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true ) && \
     cd /usr/lib/locale && \
       ( ls | grep -Piv "^(en|en_US|en_US\.utf-?8|C\.utf-?8)$" | xargs -l -r rm -rf ) && \
     cd /tmp && \
-    apt-get clean && \
-      rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/*/*
+    apt-get -q -y autoremove && \
+      apt-get clean && \
+      rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # configure unprivileged user and runtime parameters
 ARG DEFAULT_UID=1000
@@ -211,9 +169,4 @@ ENV PATH "${ZEEK_DIR}/bin:${PATH}"
 
 RUN curl -fsSL -o /tmp/zeek_install_plugins.sh "https://raw.githubusercontent.com/mmguero-dev/Malcolm/development/shared/bin/zeek_install_plugins.sh" && \
     bash /tmp/zeek_install_plugins.sh && \
-    ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -r -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) && \
-    ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
-    rm -rf /tmp/zeek_install_plugins.sh \
-           "${ZEEK_DIR}"/var/lib/zkg/scratch \
-           "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
-    ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true )
+    rm -rf /tmp/zeek_install_plugins.sh
