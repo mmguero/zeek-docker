@@ -63,6 +63,7 @@ RUN apt-get -q update && \
         curl \
         g++ \
         libcap2-bin \
+        make \
         openssl \
         rsync \
         tini && \
