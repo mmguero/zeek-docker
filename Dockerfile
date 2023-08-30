@@ -66,7 +66,8 @@ RUN apt-get -q update && \
         make \
         openssl \
         rsync \
-        tini && \
+        tini \
+        xxd && \
     mkdir -p /tmp/zeek-packages && \
       cd /tmp/zeek-packages && \
       if [ -n "${ZEEK_LTS}" ]; then ZEEK_LTS="-lts"; fi && export ZEEK_LTS && \
