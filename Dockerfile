@@ -28,6 +28,62 @@
 #     mmguero/zeek:latest \
 #     zeek -C -r /data/foobar.pcap local
 
+FROM debian:12-slim as build
+
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV TERM xterm
+
+# for download and install
+ARG ZEEK_VERSION=6.0.0
+ENV ZEEK_VERSION $ZEEK_VERSION
+
+# put Zeek and Spicy in PATH
+ENV ZEEK_DIR "/opt/zeek"
+ENV PATH "${ZEEK_DIR}/bin:${PATH}"
+
+# for build
+ENV CCACHE_DIR "/var/spool/ccache"
+ENV CCACHE_COMPRESS 1
+ENV SPICY_ZKG_PROCESSES 1
+
+RUN apt-get -q update && \
+    apt-get -y -q --no-install-recommends upgrade && \
+    apt-get install -q -y --no-install-recommends \
+        bison \
+        ca-certificates \
+        ccache \
+        cmake \
+        curl \
+        flex \
+        g++ \
+        gcc \
+        git \
+        libfl-dev \
+        libgoogle-perftools4 \
+        libgoogle-perftools-dev \
+        libkrb5-3 \
+        libkrb5-dev \
+        libmaxminddb-dev \
+        libpcap-dev \
+        libssl-dev \
+        libtcmalloc-minimal4 \
+        make \
+        python3 \
+        python3-dev \
+        python3-git \
+        python3-semantic-version \
+        sudo \
+        swig \
+        zlib1g-dev && \
+    mkdir -p /usr/share/src/zeek "${CCACHE_DIR}" && \
+        cd /usr/share/src && \
+        ( curl -sSL "https://download.zeek.org/zeek-${ZEEK_VERSION}.tar.gz" | tar xzf - -C ./zeek --strip-components 1 ) && \
+        cd /usr/share/src/zeek && \
+        ./configure --prefix=/opt/zeek --ccache --enable-perftools && \
+        make && \
+        make install
+
 FROM debian:12-slim as base
 
 LABEL maintainer="mero.mero.guero@gmail.com"
@@ -37,59 +93,42 @@ LABEL org.opencontainers.image.source='https://github.com/mmguero/zeek-docker'
 LABEL org.opencontainers.image.title='ghcr.io/mmguero/zeek'
 LABEL org.opencontainers.image.description='Dockerized Zeek and Spicy'
 
+
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
-
-# for download and install
-ARG ZEEK_LTS=
-ARG ZEEK_RC=
-ARG ZEEK_DBG=
-ARG ZEEK_VERSION=6.0.0-0
-
-ENV ZEEK_LTS $ZEEK_LTS
-ENV ZEEK_RC $ZEEK_RC
-ENV ZEEK_DBG $ZEEK_DBG
-ENV ZEEK_VERSION $ZEEK_VERSION
 
 # put Zeek and Spicy in PATH
 ENV ZEEK_DIR "/opt/zeek"
 ENV PATH "${ZEEK_DIR}/bin:${PATH}"
 
+# for build
+ENV CCACHE_DIR "/var/spool/ccache"
+ENV CCACHE_COMPRESS 1
+ENV SPICY_ZKG_PROCESSES 1
+
+COPY --from=build $ZEEK_DIR $ZEEK_DIR
+
 RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
     apt-get install -q -y --no-install-recommends \
         ca-certificates \
+        ccache \
         cmake \
         curl \
         g++ \
         libcap2-bin \
+        libfl2 \
+        libgoogle-perftools4 \
+        libkrb5-3 \
+        libmaxminddb0 \
+        libpcap-dev \
+        libpcap0.8 \
+        libssl3 \
+        libtcmalloc-minimal4 \
         make \
         openssl \
         rsync \
         tini && \
-    mkdir -p /tmp/zeek-packages && \
-      cd /tmp/zeek-packages && \
-      if [ -n "${ZEEK_LTS}" ]; then ZEEK_LTS="-lts"; fi && export ZEEK_LTS && \
-      if [ -n "${ZEEK_RC}" ]; then ZEEK_RC="-rc"; ln -s -r "${ZEEK_DIR}${ZEEK_RC}" "${ZEEK_DIR}"; fi && export ZEEK_RC && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-btest-data_6.0.0-0_all.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-btest_6.0.0-0_all.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-client_6.0.0-0_all.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/all/zeek${ZEEK_LTS}${ZEEK_RC}-zkg_6.0.0-0_all.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/libbroker${ZEEK_LTS}${ZEEK_RC}-dev_6.0.0-0_amd64.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}_6.0.0-0_amd64.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core_6.0.0-0_amd64.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core-dev_6.0.0-0_amd64.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-spicy-dev_6.0.0-0_amd64.deb" && \
-        curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeekctl${ZEEK_LTS}${ZEEK_RC}_6.0.0-0_amd64.deb" && \
-        if [ -n "${ZEEK_DBG}" ]; then \
-            ZEEK_DBG="-dbgsym" && export ZEEK_DBG && \
-            curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
-            curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-core-dev${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
-            curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeek${ZEEK_LTS}${ZEEK_RC}-spicy-dev${ZEEK_DBG}_6.0.0-0_amd64.deb" && \
-            curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/Debian_12/amd64/zeekctl${ZEEK_LTS}${ZEEK_RC}${ZEEK_DBG}_6.0.0-0_amd64.deb"; \
-        fi && \
-      ( dpkg -i ./*.deb || apt-get -f -q -y --no-install-recommends install ) && \
-    cd /tmp && \
     zkg autoconfig --force && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
     cd /usr/lib/locale && \
@@ -160,13 +199,14 @@ LABEL org.opencontainers.image.source='https://github.com/mmguero/zeek-docker'
 LABEL org.opencontainers.image.title='ghcr.io/mmguero/zeek:plus'
 LABEL org.opencontainers.image.description='Dockerized Zeek and Spicy with extra plugins'
 
-# for build
-ENV CCACHE_DIR "/var/spool/ccache"
-ENV CCACHE_COMPRESS 1
-
 # put Zeek and Spicy in PATH
 ENV ZEEK_DIR "/opt/zeek"
 ENV PATH "${ZEEK_DIR}/bin:${PATH}"
+
+# for build
+ENV CCACHE_DIR "/var/spool/ccache"
+ENV CCACHE_COMPRESS 1
+ENV SPICY_ZKG_PROCESSES 1
 
 RUN curl -fsSL -o /tmp/zeek_install_plugins.sh "https://raw.githubusercontent.com/mmguero-dev/Malcolm/development/shared/bin/zeek_install_plugins.sh" && \
     bash /tmp/zeek_install_plugins.sh && \
