@@ -45,6 +45,8 @@ ENV ZEEK_DIR "/opt/zeek"
 ENV PATH "${ZEEK_DIR}/bin:${PATH}"
 
 # for build
+ARG ZEEK_DBG=0
+ENV ZEEK_DBG $ZEEK_DBG
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
@@ -82,7 +84,9 @@ RUN apt-get -q update && \
         cd /usr/share/src && \
         ( curl -sSL "https://download.zeek.org/zeek-${ZEEK_VERSION}.tar.gz" | tar xzf - -C ./zeek --strip-components 1 ) && \
         cd /usr/share/src/zeek && \
-        ./configure --prefix=/opt/zeek --ccache --enable-perftools && \
+        [ "$ZEEK_DBG" = "1" ] && \
+            ./configure --prefix=/opt/zeek --ccache --enable-perftools --enable-debug || \
+            ./configure --prefix=/opt/zeek --ccache --enable-perftools && \
         make && \
         make install
 
@@ -106,6 +110,8 @@ ENV ZEEK_DIR "/opt/zeek"
 ENV PATH "${ZEEK_DIR}/bin:${PATH}"
 
 # for build
+ARG ZEEK_DBG=0
+ENV ZEEK_DBG $ZEEK_DBG
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
@@ -143,12 +149,14 @@ RUN apt-get -q update && \
         rsync \
         tini && \
     zkg autoconfig --force && \
-    ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) && \
-        ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
-        rm -rf "${ZEEK_DIR}"/var/lib/zkg/scratch && \
-        rm -rf "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
-        ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -l -r strip --strip-unneeded ) && \
-        ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true ) && \
+    if [ "$ZEEK_DBG" = "1" ]; then \
+        ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) ; \
+        ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) ; \
+        rm -rf "${ZEEK_DIR}"/var/lib/zkg/scratch ; \
+        rm -rf "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ ; \
+        ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -l -r strip --strip-unneeded ) ; \
+        ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true ) ; \
+    fi && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
     cd /usr/lib/locale && \
       ( ls | grep -Piv "^(en|en_US|en_US\.utf-?8|C\.utf-?8)$" | xargs -l -r rm -rf ) && \
@@ -226,16 +234,20 @@ ENV ZEEK_DIR "/opt/zeek"
 ENV PATH "${ZEEK_DIR}/bin:${PATH}"
 
 # for build
+ARG ZEEK_DBG=0
+ENV ZEEK_DBG $ZEEK_DBG
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
 
 RUN curl -fsSL -o /tmp/zeek_install_plugins.sh "https://raw.githubusercontent.com/mmguero-dev/Malcolm/development/shared/bin/zeek_install_plugins.sh" && \
     bash /tmp/zeek_install_plugins.sh && \
-    ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) && \
-        ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
-        rm -rf "${ZEEK_DIR}"/var/lib/zkg/scratch && \
-        rm -rf "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
-        ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -l -r strip --strip-unneeded ) && \
-        ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true ) && \
+    if [ "$ZEEK_DBG" = "1" ]; then \
+        ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) ; \
+        ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) ; \
+        rm -rf "${ZEEK_DIR}"/var/lib/zkg/scratch ; \
+        rm -rf "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ ; \
+        ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -l -r strip --strip-unneeded ) ; \
+        ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true ) ; \
+    fi && \
     rm -rf /tmp/zeek_install_plugins.sh
