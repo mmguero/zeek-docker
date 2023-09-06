@@ -1,3 +1,4 @@
+########################################################################################################################
 # Zeek and Spicy
 
 # use the handy-dandy zeek-docker.sh or manually as per these examples
@@ -28,6 +29,7 @@
 #     mmguero/zeek:latest \
 #     zeek -C -r /data/foobar.pcap local
 
+########################################################################################################################
 FROM debian:12-slim as build
 
 
@@ -84,7 +86,9 @@ RUN apt-get -q update && \
         make && \
         make install
 
+########################################################################################################################
 FROM debian:12-slim as base
+
 
 LABEL maintainer="mero.mero.guero@gmail.com"
 LABEL org.opencontainers.image.authors='mero.mero.guero@gmail.com'
@@ -111,11 +115,14 @@ COPY --from=build $ZEEK_DIR $ZEEK_DIR
 RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
     apt-get install -q -y --no-install-recommends \
+        binutils \
         ca-certificates \
         ccache \
         cmake \
         curl \
+        file \
         g++ \
+        git \
         libcap2-bin \
         libfl2 \
         libgoogle-perftools4 \
@@ -123,13 +130,25 @@ RUN apt-get -q update && \
         libmaxminddb0 \
         libpcap-dev \
         libpcap0.8 \
+        libssl-dev \
         libssl3 \
         libtcmalloc-minimal4 \
         make \
         openssl \
+        procps \
+        psmisc \
+        python3 \
+        python3-git \
+        python3-semantic-version \
         rsync \
         tini && \
     zkg autoconfig --force && \
+    ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) && \
+        ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
+        rm -rf "${ZEEK_DIR}"/var/lib/zkg/scratch && \
+        rm -rf "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
+        ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -l -r strip --strip-unneeded ) && \
+        ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true ) && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
     cd /usr/lib/locale && \
       ( ls | grep -Piv "^(en|en_US|en_US\.utf-?8|C\.utf-?8)$" | xargs -l -r rm -rf ) && \
@@ -187,10 +206,9 @@ WORKDIR "${ZEEK_LOGS_DIR}"
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-uid-gid-setup.sh", "/usr/local/bin/entrypoint.sh"]
 
+########################################################################################################################
 FROM base as plus
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV TERM xterm
 
 LABEL maintainer="mero.mero.guero@gmail.com"
 LABEL org.opencontainers.image.authors='mero.mero.guero@gmail.com'
@@ -198,6 +216,10 @@ LABEL org.opencontainers.image.url='https://github.com/mmguero/zeek-docker'
 LABEL org.opencontainers.image.source='https://github.com/mmguero/zeek-docker'
 LABEL org.opencontainers.image.title='ghcr.io/mmguero/zeek:plus'
 LABEL org.opencontainers.image.description='Dockerized Zeek and Spicy with extra plugins'
+
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV TERM xterm
 
 # put Zeek and Spicy in PATH
 ENV ZEEK_DIR "/opt/zeek"
@@ -210,4 +232,10 @@ ENV SPICY_ZKG_PROCESSES 1
 
 RUN curl -fsSL -o /tmp/zeek_install_plugins.sh "https://raw.githubusercontent.com/mmguero-dev/Malcolm/development/shared/bin/zeek_install_plugins.sh" && \
     bash /tmp/zeek_install_plugins.sh && \
+    ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) && \
+        ( find "${ZEEK_DIR}"/var/lib/zkg/clones -type d -name .git -execdir bash -c "pwd; du -sh; git pull --depth=1 --ff-only; git reflog expire --expire=all --all; git tag -l | xargs -r git tag -d; git gc --prune=all; du -sh" \; ) && \
+        rm -rf "${ZEEK_DIR}"/var/lib/zkg/scratch && \
+        rm -rf "${ZEEK_DIR}"/lib/zeek/python/zeekpkg/__pycache__ && \
+        ( find "${ZEEK_DIR}/" -type f -exec file "{}" \; | grep -Pi "ELF 64-bit.*not stripped" | sed 's/:.*//' | xargs -l -r strip --strip-unneeded ) && \
+        ( find "${ZEEK_DIR}"/lib/zeek/plugins/packages -type f -name "*.hlto" -exec chmod 755 "{}" \; || true ) && \
     rm -rf /tmp/zeek_install_plugins.sh
