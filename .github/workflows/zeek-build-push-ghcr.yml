@@ -78,6 +78,20 @@ jobs:
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           platforms: ${{ env.IMAGE_PLATFORM }}
       -
+        name: Build debug image
+        id: build-debug-image
+        uses: docker/build-push-action@v3
+        with:
+          context: ${{ env.REPO_CONTEXT }}
+          file: ${{ env.REPO_CONTAINERFILE }}
+          push: true
+          target: base
+          tags: ${{ env.IMAGE_NAME }}:dbg
+          build-args: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            ZEEK_DBG=1
+          platforms: ${{ env.IMAGE_PLATFORM }}
+      -
         name: Run Trivy vulnerability scanner
         id: trivy-scan
         uses: aquasecurity/trivy-action@master

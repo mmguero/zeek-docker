@@ -9,17 +9,6 @@ global disable_log_passwords = (getenv("ZEEK_DISABLE_LOG_PASSWORDS") == "") ? F 
 global disable_ssl_validate_certs = (getenv("ZEEK_DISABLE_SSL_VALIDATE_CERTS") == "") ? F : T;
 global disable_track_all_assets = (getenv("ZEEK_DISABLE_TRACK_ALL_ASSETS") == "") ? F : T;
 
-global disable_spicy_dhcp = (getenv("ZEEK_DISABLE_SPICY_DHCP") == "") ? F : T;
-global disable_spicy_dns = (getenv("ZEEK_DISABLE_SPICY_DNS") == "") ? F : T;
-global disable_spicy_http = (getenv("ZEEK_DISABLE_SPICY_HTTP") == "") ? F : T;
-global disable_spicy_ipsec = (getenv("ZEEK_DISABLE_SPICY_IPSEC") == "") ? F : T;
-global disable_spicy_ldap = (getenv("ZEEK_DISABLE_SPICY_LDAP") == "") ? F : T;
-global disable_spicy_openvpn = (getenv("ZEEK_DISABLE_SPICY_OPENVPN") == "") ? F : T;
-global disable_spicy_stun = (getenv("ZEEK_DISABLE_SPICY_STUN") == "") ? F : T;
-global disable_spicy_tailscale = (getenv("ZEEK_DISABLE_SPICY_TAILSCALE") == "") ? F : T;
-global disable_spicy_tftp = (getenv("ZEEK_DISABLE_SPICY_TFTP") == "") ? F : T;
-global disable_spicy_wireguard = (getenv("ZEEK_DISABLE_SPICY_WIREGUARD") == "") ? F : T;
-
 redef Broker::default_listen_address = "127.0.0.1";
 redef ignore_checksums = T;
 
@@ -71,58 +60,8 @@ redef ignore_checksums = T;
 
 @load packages
 
-event zeek_init() &priority=-5 {
-  if (disable_spicy_dhcp) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_DHCP);
-  }
-  if (disable_spicy_dns) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_DNS);
-  }
-  if (disable_spicy_http) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_HTTP);
-  }
-  if (disable_spicy_ipsec) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_IPSEC_TCP);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_IPSEC_UDP);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_IPSEC_IKE_UDP);
-  }
-  if (disable_spicy_ldap) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_LDAP_TCP);
-  }
-  if (disable_spicy_openvpn) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_TCP);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_TCP_HMAC_MD5);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_TCP_HMAC_SHA1);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_TCP_HMAC_SHA256);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_TCP_HMAC_SHA512);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_UDP);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_UDP_HMAC_MD5);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_UDP_HMAC_SHA1);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_UDP_HMAC_SHA256);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_OPENVPN_UDP_HMAC_SHA512);
-  }
-  if (disable_spicy_stun) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_STUN);
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_STUN_TCP);
-  }
-  if (disable_spicy_tailscale) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_TAILSCALE);
-  }
-  if (disable_spicy_tftp) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_TFTP);
-  }
-  if (disable_spicy_wireguard) {
-    Spicy::disable_protocol_analyzer(Analyzer::ANALYZER_SPICY_WIREGUARD);
-  }
-}
-
 @if (!disable_log_passwords)
   redef HTTP::default_capture_password = T;
   redef FTP::default_capture_password = T;
   redef SOCKS::default_capture_password = T;
-  redef SNIFFPASS::log_password_plaintext = T;
-  redef LDAP::default_capture_password = T;
 @endif
-redef LDAP::default_log_search_attributes = F;
-redef SNIFFPASS::notice_log_enable = F;
-redef CVE_2021_44228::log = F;
