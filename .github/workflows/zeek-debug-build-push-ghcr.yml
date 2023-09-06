@@ -1,5 +1,5 @@
 ---
-name: zeek-build-push-ghcr
+name: zeek-debug-build-push-ghcr
 
 on:
   push:
@@ -52,49 +52,16 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
-        name: Build base image
-        id: build-base-image
+        name: Build debug image
+        id: build-debug-image
         uses: docker/build-push-action@v3
         with:
           context: ${{ env.REPO_CONTEXT }}
           file: ${{ env.REPO_CONTAINERFILE }}
           push: true
           target: base
-          tags: ${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.IMAGE_NAME }}:dbg
           build-args: |
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            ZEEK_DBG=1
           platforms: ${{ env.IMAGE_PLATFORM }}
-      -
-        name: Build plus image
-        id: build-plus-image
-        uses: docker/build-push-action@v3
-        with:
-          context: ${{ env.REPO_CONTEXT }}
-          file: ${{ env.REPO_CONTAINERFILE }}
-          push: true
-          target: plus
-          tags: ${{ env.IMAGE_NAME }}:plus
-          build-args: |
-            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          platforms: ${{ env.IMAGE_PLATFORM }}
-      -
-        name: Run Trivy vulnerability scanner
-        id: trivy-scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'image'
-          scanners: 'vuln'
-          image-ref: ${{ env.IMAGE_NAME }}:plus
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'HIGH,CRITICAL'
-          vuln-type: 'os,library'
-          hide-progress: true
-          ignore-unfixed: true
-          exit-code: '0'
-      -
-        name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
