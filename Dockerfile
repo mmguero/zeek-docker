@@ -37,7 +37,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
 # for download and install
-ARG ZEEK_VERSION=6.0.0
+ARG ZEEK_VERSION=6.0.1
 ENV ZEEK_VERSION $ZEEK_VERSION
 
 # put Zeek and Spicy in PATH
