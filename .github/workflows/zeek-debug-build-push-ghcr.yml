@@ -64,4 +64,5 @@ jobs:
           build-args: |
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
             ZEEK_DBG=1
+            BUILD_JOBS=2
           platforms: ${{ env.IMAGE_PLATFORM }}
