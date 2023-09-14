@@ -50,6 +50,9 @@ ENV ZEEK_DBG $ZEEK_DBG
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
+ENV CMAKE_C_COMPILER clang-14
+ENV CMAKE_CXX_COMPILER clang++-14
+
 
 RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
@@ -60,8 +63,7 @@ RUN apt-get -q update && \
         cmake \
         curl \
         flex \
-        g++ \
-        gcc \
+        clang \
         git \
         libfl-dev \
         libgoogle-perftools4 \
@@ -115,6 +117,8 @@ ENV ZEEK_DBG $ZEEK_DBG
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
+ENV CMAKE_C_COMPILER clang-14
+ENV CMAKE_CXX_COMPILER clang++-14
 
 COPY --from=build $ZEEK_DIR $ZEEK_DIR
 
@@ -127,7 +131,7 @@ RUN apt-get -q update && \
         cmake \
         curl \
         file \
-        g++ \
+        clang \
         git \
         libcap2-bin \
         libfl2 \
@@ -240,6 +244,8 @@ ENV ZEEK_DBG $ZEEK_DBG
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
+ENV CMAKE_C_COMPILER clang-14
+ENV CMAKE_CXX_COMPILER clang++-14
 
 RUN curl -fsSL -o /tmp/zeek_install_plugins.sh "https://raw.githubusercontent.com/mmguero-dev/Malcolm/development/shared/bin/zeek_install_plugins.sh" && \
     bash /tmp/zeek_install_plugins.sh && \
