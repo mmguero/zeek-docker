@@ -32,27 +32,25 @@
 ########################################################################################################################
 FROM debian:12-slim as build
 
-
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
-# for download and install
+# for build
 ARG ZEEK_VERSION=6.0.1
 ENV ZEEK_VERSION $ZEEK_VERSION
 
-# put Zeek and Spicy in PATH
-ENV ZEEK_DIR "/opt/zeek"
-ENV PATH "${ZEEK_DIR}/bin:${PATH}"
-
-# for build
 ARG ZEEK_DBG=0
 ENV ZEEK_DBG $ZEEK_DBG
+
+ARG BUILD_JOBS=4
+ENV BUILD_JOBS $BUILD_JOBS
+
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
-ENV SPICY_ZKG_PROCESSES 1
 ENV CMAKE_C_COMPILER clang-14
 ENV CMAKE_CXX_COMPILER clang++-14
-
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
@@ -75,6 +73,7 @@ RUN apt-get -q update && \
         libssl-dev \
         libtcmalloc-minimal4 \
         make \
+        ninja-build \
         python3 \
         python3-dev \
         python3-git \
@@ -87,10 +86,11 @@ RUN apt-get -q update && \
         ( curl -sSL "https://download.zeek.org/zeek-${ZEEK_VERSION}.tar.gz" | tar xzf - -C ./zeek --strip-components 1 ) && \
         cd /usr/share/src/zeek && \
         [ "$ZEEK_DBG" = "1" ] && \
-            ./configure --prefix=/opt/zeek --ccache --enable-perftools --enable-debug || \
-            ./configure --prefix=/opt/zeek --ccache --enable-perftools && \
-        make && \
-        make install
+            ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools --enable-debug || \
+            ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools && \
+        ninja -C build -j "${BUILD_JOBS}" && \
+        cd ./build && \
+        cpack -G DEB
 
 ########################################################################################################################
 FROM debian:12-slim as base
@@ -120,7 +120,7 @@ ENV SPICY_ZKG_PROCESSES 1
 ENV CMAKE_C_COMPILER clang-14
 ENV CMAKE_CXX_COMPILER clang++-14
 
-COPY --from=build $ZEEK_DIR $ZEEK_DIR
+COPY --from=build /usr/share/src/zeek/build/*.deb /tmp/zeek-deb/
 
 RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
@@ -153,6 +153,8 @@ RUN apt-get -q update && \
         rsync \
         tini \
         xxd && \
+    dpkg -i /tmp/zeek-deb/*.deb && \
+    apt-get -f install -q -y --no-install-recommends && \
     zkg autoconfig --force && \
     if [ "$ZEEK_DBG" = "1" ]; then \
         ( find "${ZEEK_DIR}"/lib "${ZEEK_DIR}"/var/lib/zkg \( -path "*/build/*" -o -path "*/CMakeFiles/*" \) -type f -name "*.*" -print0 | xargs -0 -I XXX bash -c 'file "XXX" | sed "s/^.*:[[:space:]]//" | grep -Pq "(ELF|gzip)" && rm -f "XXX"' || true ) ; \
