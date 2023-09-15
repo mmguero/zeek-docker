@@ -38,6 +38,9 @@ ENV TERM xterm
 ARG ZEEK_BRANCH=v6.0.1
 ENV ZEEK_BRANCH $ZEEK_BRANCH
 
+ARG SPICY_BRANCH=
+ENV SPICY_BRANCH $SPICY_BRANCH
+
 ARG ZEEK_DBG=0
 ENV ZEEK_DBG $ZEEK_DBG
 
@@ -89,14 +92,17 @@ RUN apt-get -q update && \
         --branch "${ZEEK_BRANCH}" \
         "https://github.com/zeek/zeek.git" \
         /usr/share/src/zeek && \
+    cd /usr/share/src/zeek/auxil/spicy
+        if ! [ -z $SPICY_BRANCH ]; then git checkout --force $SPICY_BRANCH fi && \
+        git rev-parse --short HEAD | tee /spicy-sha.txt && \
     cd /usr/share/src/zeek && \
-    git rev-parse --short HEAD | tee /zeek-sha.txt && \
-    [ "$ZEEK_DBG" = "1" ] && \
-        ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools --enable-debug || \
-        ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools && \
-    ninja -C build -j "${BUILD_JOBS}" && \
-    cd ./build && \
-    cpack -G DEB
+        git rev-parse --short HEAD | tee /zeek-sha.txt && \
+        [ "$ZEEK_DBG" = "1" ] && \
+            ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools --enable-debug || \
+            ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools && \
+        ninja -C build -j "${BUILD_JOBS}" && \
+        cd ./build && \
+        cpack -G DEB
 
 ########################################################################################################################
 FROM debian:12-slim as base
@@ -128,6 +134,7 @@ ENV CMAKE_CXX_COMPILER clang++-14
 
 COPY --from=build /usr/share/src/zeek/build/*.deb /tmp/zeek-deb/
 COPY --from=build /zeek-sha.txt /zeek-sha.txt
+COPY --from=build /spicy-sha.txt /spicy-sha.txt
 
 RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
