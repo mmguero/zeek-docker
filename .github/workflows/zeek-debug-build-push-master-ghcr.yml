@@ -1,5 +1,5 @@
 ---
-name: zeek-debug-build-push-latest-ghcr
+name: zeek-debug-build-push-master-ghcr
 
 on:
   push:
@@ -43,6 +43,12 @@ jobs:
         id: repo-checkout
         uses: actions/checkout@v3
       -
+        name: Set short git commit SHA
+        id: shortsha
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "::set-output name=short_sha::$calculatedSha"
+      -
         name: Set up QEMU
         id: setup-qemu
         uses: docker/setup-qemu-action@v2
@@ -63,7 +69,7 @@ jobs:
           file: ${{ env.REPO_CONTAINERFILE }}
           push: true
           target: base
-          tags: ${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}
+          tags: ${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-debug,${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-${{ steps.shortsha.outputs.short_sha }}-debug
           build-args: |
             BUILD_JOBS=${{ env.BUILD_JOBS }}
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
