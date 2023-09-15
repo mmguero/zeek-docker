@@ -5,11 +5,14 @@ on:
   push:
     branches:
       - 'main'
+    paths:
+      - '!**.md'
+      - '!zeek-docker.sh'
   pull_request:
   workflow_dispatch:
   repository_dispatch:
   schedule:
-    - cron: '0 12 15 * *'
+    - cron: '0 12 * * 0'
 
 env:
   REGISTRY: ghcr.io
