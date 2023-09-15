@@ -9,7 +9,7 @@
 #     -v "$(pwd):/zeek-logs" \
 #     --network host \
 #     --cap-add=NET_ADMIN --cap-add=NET_RAW --cap-add=IPC_LOCK \
-#     mmguero/zeek:latest \
+#     mmguero/zeek:v6.0.1 \
 #     zeekcap -i enp6s0 local
 
 # Analyze a PCAP file with Zeek:
@@ -17,7 +17,7 @@
 #   docker run --rm \
 #     -v "$(pwd):/zeek-logs" \
 #     -v "/path/containing/pcap:/data:ro" \
-#     mmguero/zeek:latest \
+#     mmguero/zeek:v6.0.1 \
 #     zeek -C -r /data/foobar.pcap local
 
 # Use a custom policy:
@@ -26,7 +26,7 @@
 #     -v "$(pwd):/zeek-logs" \
 #     -v "/path/containing/pcap:/data:ro" \
 #     -v "/path/containing/policy/local-example.zeek:/opt/zeek/share/zeek/site/local.zeek:ro" \
-#     mmguero/zeek:latest \
+#     mmguero/zeek:v6.0.1 \
 #     zeek -C -r /data/foobar.pcap local
 
 ########################################################################################################################
@@ -35,9 +35,8 @@ FROM debian:12-slim as build
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
-# for build
-ARG ZEEK_VERSION=6.0.1
-ENV ZEEK_VERSION $ZEEK_VERSION
+ARG ZEEK_BRANCH=v6.0.1
+ENV ZEEK_BRANCH $ZEEK_BRANCH
 
 ARG ZEEK_DBG=0
 ENV ZEEK_DBG $ZEEK_DBG
@@ -81,16 +80,22 @@ RUN apt-get -q update && \
         sudo \
         swig \
         zlib1g-dev && \
-    mkdir -p /usr/share/src/zeek "${CCACHE_DIR}" && \
-        cd /usr/share/src && \
-        ( curl -sSL "https://download.zeek.org/zeek-${ZEEK_VERSION}.tar.gz" | tar xzf - -C ./zeek --strip-components 1 ) && \
-        cd /usr/share/src/zeek && \
-        [ "$ZEEK_DBG" = "1" ] && \
-            ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools --enable-debug || \
-            ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools && \
-        ninja -C build -j "${BUILD_JOBS}" && \
-        cd ./build && \
-        cpack -G DEB
+    mkdir -p /usr/share/src "${CCACHE_DIR}" && \
+    git clone \
+        --recurse-submodules \
+        --shallow-submodules \
+        --single-branch \
+        --depth 1 \
+        --branch "${ZEEK_BRANCH}" \
+        "https://github.com/zeek/zeek.git" \
+        /usr/share/src/zeek && \
+    cd /usr/share/src/zeek && \
+    [ "$ZEEK_DBG" = "1" ] && \
+        ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools --enable-debug || \
+        ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools && \
+    ninja -C build -j "${BUILD_JOBS}" && \
+    cd ./build && \
+    cpack -G DEB
 
 ########################################################################################################################
 FROM debian:12-slim as base

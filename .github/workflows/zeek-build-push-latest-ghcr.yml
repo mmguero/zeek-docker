@@ -1,5 +1,5 @@
 ---
-name: zeek-build-push-ghcr
+name: zeek-build-push-latest-ghcr
 
 on:
   push:
@@ -17,6 +17,9 @@ env:
   IMAGE_PLATFORM: linux/amd64
   REPO_CONTEXT: .
   REPO_CONTAINERFILE: ./Dockerfile
+  BUILD_JOBS: 2
+  ZEEK_BRANCH: v6.0.1
+  ZEEK_DBG: 0
 
 jobs:
   buildpushscan:
@@ -60,10 +63,12 @@ jobs:
           file: ${{ env.REPO_CONTAINERFILE }}
           push: true
           target: base
-          tags: ${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}
           build-args: |
+            BUILD_JOBS=${{ env.BUILD_JOBS }}
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-            BUILD_JOBS=2
+            ZEEK_BRANCH=${{ env.ZEEK_BRANCH }}
+            ZEEK_DBG=${{ env.ZEEK_DBG }}
           platforms: ${{ env.IMAGE_PLATFORM }}
       -
         name: Build plus image
@@ -74,10 +79,12 @@ jobs:
           file: ${{ env.REPO_CONTAINERFILE }}
           push: true
           target: plus
-          tags: ${{ env.IMAGE_NAME }}:plus
+          tags: ${{ env.IMAGE_NAME }}:plus,${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-plus
           build-args: |
+            BUILD_JOBS=${{ env.BUILD_JOBS }}
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-            BUILD_JOBS=2
+            ZEEK_BRANCH=${{ env.ZEEK_BRANCH }}
+            ZEEK_DBG=${{ env.ZEEK_DBG }}
           platforms: ${{ env.IMAGE_PLATFORM }}
       -
         name: Run Trivy vulnerability scanner
@@ -86,7 +93,7 @@ jobs:
         with:
           scan-type: 'image'
           scanners: 'vuln'
-          image-ref: ${{ env.IMAGE_NAME }}:plus
+          image-ref: ${{ env.IMAGE_NAME }}:latest
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'HIGH,CRITICAL'

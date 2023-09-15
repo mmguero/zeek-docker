@@ -1,0 +1,88 @@
+---
+name: zeek-build-push-latest-ghcr
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+  workflow_dispatch:
+  repository_dispatch:
+  schedule:
+    - cron: '0 12 15 * *'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/zeek
+  IMAGE_PLATFORM: linux/amd64
+  REPO_CONTEXT: .
+  REPO_CONTAINERFILE: ./Dockerfile
+  BUILD_JOBS: 2
+  ZEEK_BRANCH: master
+  ZEEK_DBG: 0
+
+jobs:
+  buildpushscan:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      packages: write
+      contents: read
+      security-events: write
+    steps:
+      -
+        name: Cancel previous run in progress
+        id: cancel-previous-runs
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          ignore_sha: true
+          all_but_latest: true
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Checkout
+        id: repo-checkout
+        uses: actions/checkout@v3
+      -
+        name: Set up QEMU
+        id: setup-qemu
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Log in to registry
+        id: registry-login
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Build base image
+        id: build-base-image
+        uses: docker/build-push-action@v3
+        with:
+          context: ${{ env.REPO_CONTEXT }}
+          file: ${{ env.REPO_CONTAINERFILE }}
+          push: true
+          target: base
+          tags: ${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}
+          build-args: |
+            BUILD_JOBS=${{ env.BUILD_JOBS }}
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            ZEEK_BRANCH=${{ env.ZEEK_BRANCH }}
+            ZEEK_DBG=${{ env.ZEEK_DBG }}
+          platforms: ${{ env.IMAGE_PLATFORM }}
+      -
+        name: Build plus image
+        id: build-plus-image
+        uses: docker/build-push-action@v3
+        with:
+          context: ${{ env.REPO_CONTEXT }}
+          file: ${{ env.REPO_CONTAINERFILE }}
+          push: true
+          target: plus
+          tags: ${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-plus
+          build-args: |
+            BUILD_JOBS=${{ env.BUILD_JOBS }}
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            ZEEK_BRANCH=${{ env.ZEEK_BRANCH }}
+            ZEEK_DBG=${{ env.ZEEK_DBG }}
+          platforms: ${{ env.IMAGE_PLATFORM }}
