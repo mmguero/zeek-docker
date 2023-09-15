@@ -90,6 +90,7 @@ RUN apt-get -q update && \
         "https://github.com/zeek/zeek.git" \
         /usr/share/src/zeek && \
     cd /usr/share/src/zeek && \
+    git rev-parse --short HEAD | tee /zeek-sha.txt && \
     [ "$ZEEK_DBG" = "1" ] && \
         ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools --enable-debug || \
         ./configure --prefix=/opt/zeek --generator=Ninja --ccache --enable-perftools && \
@@ -126,6 +127,7 @@ ENV CMAKE_C_COMPILER clang-14
 ENV CMAKE_CXX_COMPILER clang++-14
 
 COPY --from=build /usr/share/src/zeek/build/*.deb /tmp/zeek-deb/
+COPY --from=build /zeek-sha.txt /zeek-sha.txt
 
 RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \

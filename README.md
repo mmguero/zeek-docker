@@ -249,3 +249,14 @@ _Zeek::Spicy - Support for Spicy parsers (*.spicy, *.evt, *.hlto) (dynamic, vers
 ```
 
 After building your derivative image, you could run it directly or run `zeek-docker.sh` with a `ZEEK_IMAGE` environment variable containing the name of your image.
+
+
+## GitHub Workflows and Image Tags
+
+The [GitHub workflows](.github/workflows) in this repository build and tag the following images:
+
+* `ghcr.io/mmguero/zeek:latest` and `ghcr.io/mmguero/zeek:v6.0.1`
+* `ghcr.io/mmguero/zeek:latest-debug` and `ghcr.io/mmguero/zeek:v6.0.1-debug`
+* `ghcr.io/mmguero/zeek:plus` and `ghcr.io/mmguero/zeek:v6.0.1-plus`
+* `ghcr.io/mmguero/zeek:master`
+* `ghcr.io/mmguero/zeek:master-debug`

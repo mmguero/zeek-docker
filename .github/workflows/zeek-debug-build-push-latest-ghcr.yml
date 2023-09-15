@@ -63,7 +63,7 @@ jobs:
           file: ${{ env.REPO_CONTAINERFILE }}
           push: true
           target: base
-          tags: ${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}
+          tags: ${{ env.IMAGE_NAME }}:latest-debug,${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-debug
           build-args: |
             BUILD_JOBS=${{ env.BUILD_JOBS }}
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}

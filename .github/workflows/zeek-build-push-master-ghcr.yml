@@ -43,12 +43,6 @@ jobs:
         id: repo-checkout
         uses: actions/checkout@v3
       -
-        name: Set short git commit SHA
-        id: shortsha
-        run: |
-          calculatedSha=$(git rev-parse --short ${{ github.sha }})
-          echo "::set-output name=short_sha::$calculatedSha"
-      -
         name: Set up QEMU
         id: setup-qemu
         uses: docker/setup-qemu-action@v2
@@ -69,23 +63,7 @@ jobs:
           file: ${{ env.REPO_CONTAINERFILE }}
           push: true
           target: base
-          tags: ${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }},${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-${{ steps.shortsha.outputs.short_sha }}
-          build-args: |
-            BUILD_JOBS=${{ env.BUILD_JOBS }}
-            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-            ZEEK_BRANCH=${{ env.ZEEK_BRANCH }}
-            ZEEK_DBG=${{ env.ZEEK_DBG }}
-          platforms: ${{ env.IMAGE_PLATFORM }}
-      -
-        name: Build plus image
-        id: build-plus-image
-        uses: docker/build-push-action@v3
-        with:
-          context: ${{ env.REPO_CONTEXT }}
-          file: ${{ env.REPO_CONTAINERFILE }}
-          push: true
-          target: plus
-          tags: ${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-plus
+          tags: ${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}
           build-args: |
             BUILD_JOBS=${{ env.BUILD_JOBS }}
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
