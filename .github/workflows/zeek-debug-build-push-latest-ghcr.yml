@@ -6,6 +6,7 @@ on:
     branches:
       - 'main'
     paths:
+      - '**'
       - '!**.md'
       - '!zeek-docker.sh'
   pull_request:
