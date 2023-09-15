@@ -93,7 +93,7 @@ RUN apt-get -q update && \
         "https://github.com/zeek/zeek.git" \
         /usr/share/src/zeek && \
     cd /usr/share/src/zeek/auxil/spicy && \
-        if ! [ -z $SPICY_BRANCH ]; then git checkout --force $SPICY_BRANCH fi && \
+        if ! [ -z $SPICY_BRANCH ]; then git checkout --force $SPICY_BRANCH; fi && \
         git rev-parse --short HEAD | tee /spicy-sha.txt && \
     cd /usr/share/src/zeek && \
         git rev-parse --short HEAD | tee /zeek-sha.txt && \
