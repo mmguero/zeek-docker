@@ -150,8 +150,8 @@ RUN apt-get -q update && \
         file \
         clang \
         git \
-        libc++abi1 \
-        libc++1 \
+        libc++abi-dev \
+        libc++-dev \
         libcap2-bin \
         libfl2 \
         libgoogle-perftools4 \
