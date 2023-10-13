@@ -61,16 +61,16 @@ RUN apt-get -q update && \
         bison \
         ca-certificates \
         ccache \
+        clang \
         cmake \
         curl \
         flex \
-        clang \
         git \
-        libc++abi-dev \
         libc++-dev \
+        libc++abi-dev \
         libfl-dev \
-        libgoogle-perftools4 \
         libgoogle-perftools-dev \
+        libgoogle-perftools4 \
         libkrb5-3 \
         libkrb5-dev \
         libmaxminddb-dev \
@@ -134,6 +134,7 @@ ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
 ENV CMAKE_C_COMPILER clang-14
 ENV CMAKE_CXX_COMPILER clang++-14
+ENV CXXFLAGS "-stdlib=libc++ -lc++abi"
 
 COPY --from=build /usr/share/src/zeek/build/*.deb /tmp/zeek-deb/
 COPY --from=build /zeek-sha.txt /zeek-sha.txt
@@ -145,13 +146,13 @@ RUN apt-get -q update && \
         binutils \
         ca-certificates \
         ccache \
+        clang \
         cmake \
         curl \
         file \
-        clang \
         git \
-        libc++abi-dev \
         libc++-dev \
+        libc++abi-dev \
         libcap2-bin \
         libfl2 \
         libgoogle-perftools4 \
