@@ -23,7 +23,7 @@ env:
   REPO_CONTAINERFILE: ./Dockerfile
   BUILD_JOBS: 2
   ZEEK_BRANCH: master
-  SPICY_BRANCH:
+  SPICY_BRANCH: main
   ZEEK_DBG: 1
 
 jobs:

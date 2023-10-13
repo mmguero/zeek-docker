@@ -51,6 +51,7 @@ ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV CMAKE_C_COMPILER clang-14
 ENV CMAKE_CXX_COMPILER clang++-14
+ENV CXXFLAGS "-stdlib=libc++ -lc++abi"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
@@ -65,6 +66,7 @@ RUN apt-get -q update && \
         flex \
         clang \
         git \
+        libc++abi-dev \
         libc++-dev \
         libfl-dev \
         libgoogle-perftools4 \
@@ -148,6 +150,8 @@ RUN apt-get -q update && \
         file \
         clang \
         git \
+        libc++abi1 \
+        libc++1 \
         libcap2-bin \
         libfl2 \
         libgoogle-perftools4 \
