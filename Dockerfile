@@ -50,7 +50,9 @@ ENV BUILD_JOBS $BUILD_JOBS
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV CMAKE_C_COMPILER clang-14
+ENV CC clang-14
 ENV CMAKE_CXX_COMPILER clang++-14
+ENV CXX clang++-14
 ENV CXXFLAGS "-stdlib=libc++ -lc++abi"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -133,8 +135,12 @@ ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
 ENV CMAKE_C_COMPILER clang-14
+ENV CC clang-14
 ENV CMAKE_CXX_COMPILER clang++-14
+ENV CXX clang++-14
 ENV CXXFLAGS "-stdlib=libc++ -lc++abi"
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 COPY --from=build /usr/share/src/zeek/build/*.deb /tmp/zeek-deb/
 COPY --from=build /zeek-sha.txt /zeek-sha.txt
