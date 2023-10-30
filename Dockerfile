@@ -193,6 +193,9 @@ RUN apt-get -q update && \
     echo "@load packages" >> "${ZEEK_DIR}"/share/zeek/site/local.zeek && \
     cd /usr/lib/locale && \
       ( ls | grep -Piv "^(en|en_US|en_US\.utf-?8|C\.utf-?8)$" | xargs -l -r rm -rf ) && \
+    cd /usr/bin && \
+        curl -sSL 'https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz' | tar xzvf - && \
+        chmod 766 /usr/bin/eza && \
     cd /tmp && \
     apt-get -q -y autoremove && \
       apt-get clean && \
