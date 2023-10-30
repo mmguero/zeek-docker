@@ -49,6 +49,11 @@ ENV BUILD_JOBS $BUILD_JOBS
 
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
+ENV CMAKE_C_COMPILER clang-14
+ENV CC clang-14
+ENV CMAKE_CXX_COMPILER clang++-14
+ENV CXX clang++-14
+ENV CXXFLAGS "-stdlib=libc++ -lc++abi"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
@@ -56,14 +61,15 @@ RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
     apt-get install -q -y --no-install-recommends \
         bison \
-        build-essential \
         ca-certificates \
         ccache \
+        clang \
         cmake \
         curl \
-        file \
         flex \
         git \
+        libc++-dev \
+        libc++abi-dev \
         libfl-dev \
         libgoogle-perftools-dev \
         libgoogle-perftools4 \
@@ -71,7 +77,6 @@ RUN apt-get -q update && \
         libkrb5-dev \
         libmaxminddb-dev \
         libpcap-dev \
-        libpython3.11-dev \
         libssl-dev \
         libtcmalloc-minimal4 \
         make \
@@ -129,6 +134,11 @@ ENV ZEEK_DBG $ZEEK_DBG
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
+ENV CMAKE_C_COMPILER clang-14
+ENV CC clang-14
+ENV CMAKE_CXX_COMPILER clang++-14
+ENV CXX clang++-14
+ENV CXXFLAGS "-stdlib=libc++ -lc++abi"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
@@ -140,13 +150,15 @@ RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends upgrade && \
     apt-get install -q -y --no-install-recommends \
         binutils \
-        build-essential \
         ca-certificates \
         ccache \
+        clang \
         cmake \
         curl \
         file \
         git \
+        libc++-dev \
+        libc++abi-dev \
         libcap2-bin \
         libfl2 \
         libgoogle-perftools4 \
@@ -154,7 +166,6 @@ RUN apt-get -q update && \
         libmaxminddb0 \
         libpcap-dev \
         libpcap0.8 \
-        libpython3.11 \
         libssl-dev \
         libssl3 \
         libtcmalloc-minimal4 \
@@ -261,6 +272,8 @@ ENV ZEEK_DBG $ZEEK_DBG
 ENV CCACHE_DIR "/var/spool/ccache"
 ENV CCACHE_COMPRESS 1
 ENV SPICY_ZKG_PROCESSES 1
+ENV CMAKE_C_COMPILER clang-14
+ENV CMAKE_CXX_COMPILER clang++-14
 
 RUN curl -fsSL -o /tmp/zeek_install_plugins.sh "https://raw.githubusercontent.com/mmguero-dev/Malcolm/development/shared/bin/zeek_install_plugins.sh" && \
     bash /tmp/zeek_install_plugins.sh && \
