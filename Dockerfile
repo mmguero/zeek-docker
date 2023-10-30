@@ -9,7 +9,7 @@
 #     -v "$(pwd):/zeek-logs" \
 #     --network host \
 #     --cap-add=NET_ADMIN --cap-add=NET_RAW --cap-add=IPC_LOCK \
-#     mmguero/zeek:v6.0.1 \
+#     mmguero/zeek:v6.1.0 \
 #     zeekcap -i enp6s0 local
 
 # Analyze a PCAP file with Zeek:
@@ -17,7 +17,7 @@
 #   docker run --rm \
 #     -v "$(pwd):/zeek-logs" \
 #     -v "/path/containing/pcap:/data:ro" \
-#     mmguero/zeek:v6.0.1 \
+#     mmguero/zeek:v6.1.0 \
 #     zeek -C -r /data/foobar.pcap local
 
 # Use a custom policy:
@@ -26,7 +26,7 @@
 #     -v "$(pwd):/zeek-logs" \
 #     -v "/path/containing/pcap:/data:ro" \
 #     -v "/path/containing/policy/local-example.zeek:/opt/zeek/share/zeek/site/local.zeek:ro" \
-#     mmguero/zeek:v6.0.1 \
+#     mmguero/zeek:v6.1.0 \
 #     zeek -C -r /data/foobar.pcap local
 
 ########################################################################################################################
@@ -35,7 +35,7 @@ FROM debian:12-slim as build
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
-ARG ZEEK_BRANCH=v6.0.1
+ARG ZEEK_BRANCH=v6.1.0
 ENV ZEEK_BRANCH $ZEEK_BRANCH
 
 ARG SPICY_BRANCH=
