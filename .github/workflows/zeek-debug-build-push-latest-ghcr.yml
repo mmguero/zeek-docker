@@ -21,6 +21,7 @@ env:
   IMAGE_PLATFORM: linux/amd64
   REPO_CONTEXT: .
   REPO_CONTAINERFILE: ./Dockerfile
+  BUILD_FROM_SOURCE: 0
   BUILD_JOBS: 2
   ZEEK_BRANCH: v6.1.0
   SPICY_BRANCH:
@@ -70,6 +71,7 @@ jobs:
           target: base
           tags: ${{ env.IMAGE_NAME }}:latest-debug,${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-debug
           build-args: |
+            BUILD_FROM_SOURCE=${{ env.BUILD_FROM_SOURCE }}
             BUILD_JOBS=${{ env.BUILD_JOBS }}
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
             ZEEK_BRANCH=${{ env.ZEEK_BRANCH }}
