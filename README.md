@@ -19,7 +19,7 @@ To understand which local `*.zeek` scripts will be used when we run `zeek-docker
 ```
 user@host tmp › ls -l $(dirname $(realpath $(which zeek-docker.sh)))/
 total 32,768
--rw-r--r-- 1 user user 6,852 Jun  8 07:44 base.Dockerfile
+-rw-r--r-- 1 user user 6,852 Jun  8 07:44 Dockerfile
 -rw-r--r-- 1 user user 1,724 May 18 11:21 local-example.zeek
 -rw-r--r-- 1 user user 8,874 May 18 11:21 login.zeek
 -rw-r--r-- 1 user user 1,689 Jun  8 08:58 README.md
