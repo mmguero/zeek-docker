@@ -52,7 +52,6 @@ redef ignore_checksums = T;
 @load policy/protocols/conn/mac-logging
 # @load policy/protocols/modbus/track-memmap
 @load policy/protocols/modbus/known-masters-slaves
-@load policy/protocols/mqtt
 
 # @load frameworks/files/detect-MHR
 # @load policy/misc/loaded-scripts
