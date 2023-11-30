@@ -48,7 +48,7 @@ while IFS='=' read -r ZEEK_ENV_VAR value ; do
   fi
 done < <(env)
 
-export ZEEK_IMAGE=${ZEEK_IMAGE:-ghcr.io/mmguero/zeek:latest}
+export ZEEK_IMAGE=${ZEEK_IMAGE:-oci.guero.top/zeek:latest}
 export CONTAINER_ENGINE="${CONTAINER_ENGINE:-docker}"
 if [[ "$CONTAINER_ENGINE" == "podman" ]]; then
   export DEFAULT_UID=0

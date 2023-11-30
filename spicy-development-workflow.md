@@ -1,10 +1,10 @@
-Using the [`ghcr.io/mmguero/zeek:latest`](https://github.com/mmguero/zeek-docker) image for [Spicy](https://docs.zeek.org/projects/spicy/en/latest/index.html) parser development.
+Using the [`oci.guero.top/zeek:latest`](https://github.com/mmguero/zeek-docker) image for [Spicy](https://docs.zeek.org/projects/spicy/en/latest/index.html) parser development.
 
 * Pull the latest build of the image (or build it yourself):
 
 ```bash
-user@host tmp › docker pull ghcr.io/mmguero/zeek:latest
-Trying to pull ghcr.io/mmguero/zeek:latest...
+user@host tmp › docker pull oci.guero.top/zeek:latest
+Trying to pull oci.guero.top/zeek:latest...
 Getting image source signatures
 ...
 Storing signatures
@@ -24,12 +24,12 @@ Receiving objects: 100% (55/55), 17.33 KiB | 844.00 KiB/s, done.
 Resolving deltas: 100% (5/5), done.
 ```
 
-* Run `bash` in a `ghcr.io/mmguero/zeek:latest` container, bind-mounting your parser repository working copy and any other folders you need:
+* Run `bash` in a `oci.guero.top/zeek:latest` container, bind-mounting your parser repository working copy and any other folders you need:
 
 ```bash
 user@host tmp › docker run -t -i -P --rm --entrypoint=/bin/bash \
     -v $(pwd)/spicy-http:/spicy-http:rw \
-    ghcr.io/mmguero/zeek:latest
+    oci.guero.top/zeek:latest
 ```
 
 * I've written this convenient bash function to extract a particular TCP payload from a PCAP file using `tshark`. There's probably a more elegant way to do this but it's worked for me. It'd need to be tweaked slightly for UDP, or for fragmented payloads, etc. but you get the idea:
