@@ -16,6 +16,11 @@ global zeek_local_nets_str = getenv("ZEEK_LOCAL_NETS");
 redef Broker::default_listen_address = "127.0.0.1";
 redef ignore_checksums = T;
 
+global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
+@if (json_format)
+  redef LogAscii::use_json = T;
+@endif
+
 @load tuning/defaults
 @load frameworks/software/vulnerable
 @load frameworks/software/version-changes
