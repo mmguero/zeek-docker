@@ -4,10 +4,13 @@
 ##!     https://docs.zeek.org/en/stable/script-reference/scripts.html
 ##!     https://github.com/zeek/zeek/blob/master/scripts/site/local.zeek
 
-global disable_hash_all_files = (getenv("ZEEK_DISABLE_HASH_ALL_FILES") == "") ? F : T;
-global disable_log_passwords = (getenv("ZEEK_DISABLE_LOG_PASSWORDS") == "") ? F : T;
-global disable_ssl_validate_certs = (getenv("ZEEK_DISABLE_SSL_VALIDATE_CERTS") == "") ? F : T;
-global disable_track_all_assets = (getenv("ZEEK_DISABLE_TRACK_ALL_ASSETS") == "") ? F : T;
+global true_regex: pattern = /^\s*(?i:t(rue)?|y(es)?|on|1)\s*$/;
+
+global disable_stats = (getenv("ZEEK_DISABLE_STATS") == true_regex) ? T : F;
+global disable_hash_all_files = (getenv("ZEEK_DISABLE_HASH_ALL_FILES") == true_regex) ? T : F;
+global disable_log_passwords = (getenv("ZEEK_DISABLE_LOG_PASSWORDS") == true_regex) ? T : F;
+global disable_ssl_validate_certs = (getenv("ZEEK_DISABLE_SSL_VALIDATE_CERTS") == true_regex) ? T : F;
+global disable_track_all_assets = (getenv("ZEEK_DISABLE_TRACK_ALL_ASSETS") == true_regex) ? T : F;
 global zeek_local_nets_str = getenv("ZEEK_LOCAL_NETS");
 
 redef Broker::default_listen_address = "127.0.0.1";
@@ -48,6 +51,10 @@ redef ignore_checksums = T;
 @if (!disable_hash_all_files)
   @load frameworks/files/hash-all-files
 @endif
+@if (!disable_stats)
+  @load policy/misc/stats
+  @load policy/misc/capture-loss
+@endif
 @load policy/protocols/conn/vlan-logging
 @load policy/protocols/conn/mac-logging
 # @load policy/protocols/modbus/track-memmap
@@ -59,6 +66,7 @@ redef ignore_checksums = T;
 @load ./login.zeek
 
 @load packages
+# @load intel
 
 event zeek_init() &priority=-5 {
 
