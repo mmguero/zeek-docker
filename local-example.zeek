@@ -64,6 +64,7 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @load policy/protocols/conn/mac-logging
 # @load policy/protocols/modbus/track-memmap
 @load policy/protocols/modbus/known-masters-slaves
+@load policy/frameworks/notice/community-id
 
 # @load frameworks/files/detect-MHR
 # @load policy/misc/loaded-scripts
