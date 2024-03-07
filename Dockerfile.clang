@@ -181,6 +181,8 @@ ENV CXXFLAGS "-stdlib=libc++ -lc++abi"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+ARG MAXMIND_GEOIP_DB_LICENSE_KEY=""
+
 COPY --from=build /usr/share/src/zeek/build/*.deb /tmp/zeek-deb/
 COPY --from=build /zeek-sha.txt /zeek-sha.txt
 COPY --from=build /spicy-sha.txt /spicy-sha.txt
@@ -239,6 +241,15 @@ RUN apt-get -q update && \
     cd /usr/bin && \
         curl -sSL 'https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz' | tar xzvf - >/dev/null 2>&1 && \
         chmod 755 /usr/bin/eza && \
+    [ ${#MAXMIND_GEOIP_DB_LICENSE_KEY} -gt 1 ] && for DB in ASN Country City; do \
+          cd /tmp && \
+          curl -s -S -L -o "GeoLite2-$DB.mmdb.tar.gz" "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-$DB&license_key=$MAXMIND_GEOIP_DB_LICENSE_KEY&suffix=tar.gz" && \
+          tar xf "GeoLite2-$DB.mmdb.tar.gz" --wildcards --no-anchored '*.mmdb' --strip=1 && \
+          mkdir -p /usr/share/GeoIP/ && \
+          mv -v "GeoLite2-$DB.mmdb" /usr/share/GeoIP/; \
+          rm -f "GeoLite2-$DB*"; \
+        done; \
+    cd /tmp && \
     cd /tmp && \
     apt-get -q -y autoremove && \
       apt-get clean && \

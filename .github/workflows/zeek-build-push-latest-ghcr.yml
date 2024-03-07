@@ -76,6 +76,7 @@ jobs:
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
             ZEEK_BRANCH=${{ env.ZEEK_BRANCH }}
             ZEEK_DBG=${{ env.ZEEK_DBG }}
+            MAXMIND_GEOIP_DB_LICENSE_KEY=${{ secrets.MAXMIND_GEOIP_DB_LICENSE_KEY }}
           platforms: ${{ env.IMAGE_PLATFORM }}
       -
         name: Build plus image
