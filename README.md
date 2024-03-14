@@ -255,8 +255,8 @@ After building your derivative image, you could run it directly or run `zeek-doc
 
 The [GitHub workflows](.github/workflows) in this repository build and tag the following images:
 
-* `oci.guero.top/zeek:latest` and `oci.guero.top/zeek:v6.1.1`
-* `oci.guero.top/zeek:latest-debug` and `oci.guero.top/zeek:v6.1.1-debug`
-* `oci.guero.top/zeek:plus` and `oci.guero.top/zeek:v6.1.1-plus`
+* `oci.guero.top/zeek:latest` and `oci.guero.top/zeek:v6.2.0`
+* `oci.guero.top/zeek:latest-debug` and `oci.guero.top/zeek:v6.2.0-debug`
+* `oci.guero.top/zeek:plus` and `oci.guero.top/zeek:v6.2.0-plus`
 * `oci.guero.top/zeek:master`
 * `oci.guero.top/zeek:master-debug`
