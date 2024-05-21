@@ -30,7 +30,9 @@
 #     zeek -C -r /data/foobar.pcap local
 
 ########################################################################################################################
-FROM debian:12-slim as build
+ARG TARGETPLATFORM=linux/amd64
+
+FROM --platform=${TARGETPLATFORM} debian:12-slim
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
@@ -150,7 +152,7 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
     ls -lh /usr/share/src/zeek/build/ | tail -n +2 | cat -n
 
 ########################################################################################################################
-FROM debian:12-slim as base
+FROM --platform=${TARGETPLATFORM} debian:12-slim as base
 
 
 LABEL maintainer="mero.mero.guero@gmail.com"
