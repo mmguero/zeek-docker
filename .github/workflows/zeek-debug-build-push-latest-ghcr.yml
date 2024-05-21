@@ -13,12 +13,11 @@ on:
   workflow_dispatch:
   repository_dispatch:
   schedule:
-    - cron: '0 12 * * 0'
+    - cron: '0 12 * * *'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/zeek
-  IMAGE_PLATFORM: linux/amd64
   REPO_CONTEXT: .
   REPO_CONTAINERFILE: ./Dockerfile.clang
   BUILD_FROM_SOURCE: 1
@@ -35,11 +34,17 @@ jobs:
       packages: write
       contents: read
       security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
     steps:
       -
         name: Cancel previous run in progress
         id: cancel-previous-runs
-        uses: styfle/cancel-workflow-action@0.11.0
+        uses: styfle/cancel-workflow-action@0.12.1
         with:
           ignore_sha: true
           all_but_latest: true
@@ -47,15 +52,22 @@ jobs:
       -
         name: Checkout
         id: repo-checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+      -
+        name: Generate arch tag suffix
+        shell: bash
+        run: echo "archtag=$([[ "${{ matrix.platform }}" == 'linux/amd64' ]] && echo '' || ( echo -n '-' ; echo "${{ matrix.platform }}" | cut -d '/' -f 2) )" >> $GITHUB_OUTPUT
+        id: arch_tag_suffix
       -
         name: Set up QEMU
         id: setup-qemu
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ matrix.platform }}
       -
         name: Log in to registry
         id: registry-login
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.repository_owner }}
@@ -63,18 +75,20 @@ jobs:
       -
         name: Build base image
         id: build-base-image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: ${{ env.REPO_CONTEXT }}
           file: ${{ env.REPO_CONTAINERFILE }}
           push: true
+          provenance: false
+          platforms: ${{ matrix.platform }}
           target: base
-          tags: ${{ env.IMAGE_NAME }}:latest-debug,${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-debug
+          tags: ${{ env.IMAGE_NAME }}:latest-debug${{ steps.arch_tag_suffix.outputs.archtag }},${{ env.IMAGE_NAME }}:${{ env.ZEEK_BRANCH }}-debug${{ steps.arch_tag_suffix.outputs.archtag }}
           build-args: |
             BUILD_FROM_SOURCE=${{ env.BUILD_FROM_SOURCE }}
             BUILD_JOBS=${{ env.BUILD_JOBS }}
+            TARGETPLATFORM=${{ matrix.platform }}
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
             ZEEK_BRANCH=${{ env.ZEEK_BRANCH }}
             ZEEK_DBG=${{ env.ZEEK_DBG }}
             MAXMIND_GEOIP_DB_LICENSE_KEY=${{ secrets.MAXMIND_GEOIP_DB_LICENSE_KEY }}
-          platforms: ${{ env.IMAGE_PLATFORM }}
