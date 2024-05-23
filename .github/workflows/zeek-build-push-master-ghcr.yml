@@ -39,7 +39,6 @@ jobs:
       matrix:
         platform:
           - linux/amd64
-          - linux/arm64
     steps:
       -
         name: Cancel previous run in progress
