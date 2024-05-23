@@ -48,7 +48,10 @@ while IFS='=' read -r ZEEK_ENV_VAR value ; do
   fi
 done < <(env)
 
-export ZEEK_IMAGE=${ZEEK_IMAGE:-oci.guero.top/zeek:latest}
+ZEEK_IMAGE=${ZEEK_IMAGE:-oci.guero.top/zeek:latest}
+IMAGE_ARCH_SUFFIX="$(uname -m | sed 's/^x86_64$//' | sed 's/^arm64$/-arm64/' | sed 's/^aarch64$/-arm64/')"
+[[ -n "$IMAGE_ARCH_SUFFIX" ]] && [[ "$ZEEK_IMAGE" != *"$IMAGE_ARCH_SUFFIX" ]] && ZEEK_IMAGE="${ZEEK_IMAGE}${IMAGE_ARCH_SUFFIX}"
+export ZEEK_IMAGE
 export CONTAINER_ENGINE="${CONTAINER_ENGINE:-docker}"
 if [[ "$CONTAINER_ENGINE" == "podman" ]]; then
   export DEFAULT_UID=0
