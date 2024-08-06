@@ -256,14 +256,14 @@ After building your derivative image, you could run it directly or run `zeek-doc
 The [GitHub workflows](.github/workflows) in this repository build and tag the following images:
 
 * AMD64
-   - `oci.guero.top/zeek:latest` and `oci.guero.top/zeek:v6.2.1`
-   - `oci.guero.top/zeek:latest-debug` and `oci.guero.top/zeek:v6.2.1-debug`
-   - `oci.guero.top/zeek:plus` and `oci.guero.top/zeek:v6.2.1-plus`
+   - `oci.guero.top/zeek:latest` and `oci.guero.top/zeek:v7.0.0`
+   - `oci.guero.top/zeek:latest-debug` and `oci.guero.top/zeek:v7.0.0-debug`
+   - `oci.guero.top/zeek:plus` and `oci.guero.top/zeek:v7.0.0-plus`
    - `oci.guero.top/zeek:master`
    - `oci.guero.top/zeek:master-debug`
 * ARM64
-   - `oci.guero.top/zeek:latest-arm64` and `oci.guero.top/zeek:v6.2.1-arm64`
-   - `oci.guero.top/zeek:latest-debug-arm64` and `oci.guero.top/zeek:v6.2.1-debug-arm64`
-   - `oci.guero.top/zeek:plus-arm64` and `oci.guero.top/zeek:v6.2.1-plus-arm64`
+   - `oci.guero.top/zeek:latest-arm64` and `oci.guero.top/zeek:v7.0.0-arm64`
+   - `oci.guero.top/zeek:latest-debug-arm64` and `oci.guero.top/zeek:v7.0.0-debug-arm64`
+   - `oci.guero.top/zeek:plus-arm64` and `oci.guero.top/zeek:v7.0.0-plus-arm64`
    - `oci.guero.top/zeek:master-arm64`
    - `oci.guero.top/zeek:master-debug-arm64`
