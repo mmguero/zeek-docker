@@ -73,7 +73,6 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 # @load policy/misc/loaded-scripts
 
 @load packages
-# @load intel
 @load custom
 
 event zeek_init() &priority=-5 {
