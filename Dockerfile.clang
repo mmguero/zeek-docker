@@ -38,7 +38,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
 ARG ZEEK_DIST=Debian_12
-ARG ZEEK_BRANCH=v7.0.0
+ARG ZEEK_BRANCH=v7.0.1
 ARG ZEEK_RELEASE_NUM=0
 ARG ZEEK_RC=0
 ARG ZEEK_DBG=0
@@ -65,6 +65,8 @@ ENV CXX clang++-14
 ENV CXXFLAGS "-stdlib=libc++ -lc++abi"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+
+COPY --chmod=755 zeek-deb-download.sh /usr/local/bin/
 
 RUN export DEBARCH=$(dpkg --print-architecture) && \
     apt-get -q update && \
@@ -126,26 +128,7 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
             curl && \
         mkdir -p /usr/share/src/zeek/build && \
         cd /usr/share/src/zeek/build && \
-        export ZEEK_VER="$(echo "${ZEEK_BRANCH}-${ZEEK_RELEASE_NUM}" | sed 's/^v//')" && \
-        echo "Downloading ${ZEEK_DIST} packages for ${ZEEK_VER}..." && \
-        if [ "$ZEEK_RC" = "1" ]; then ZEEK_RC_FN="-rc"; ln -s -r "${ZEEK_DIR}${ZEEK_RC_FN}" "${ZEEK_DIR}"; fi && export ZEEK_RC_FN && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/all/zeek${ZEEK_RC_FN}-btest-data_${ZEEK_VER}_all.deb" && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/all/zeek${ZEEK_RC_FN}-btest_${ZEEK_VER}_all.deb" && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/all/zeek${ZEEK_RC_FN}-client_${ZEEK_VER}_all.deb" && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/all/zeek${ZEEK_RC_FN}-zkg_${ZEEK_VER}_all.deb" && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/libbroker${ZEEK_RC_FN}-dev_${ZEEK_VER}_${DEBARCH}.deb" && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/zeek${ZEEK_RC_FN}_${ZEEK_VER}_${DEBARCH}.deb" && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/zeek${ZEEK_RC_FN}-core_${ZEEK_VER}_${DEBARCH}.deb" && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/zeek${ZEEK_RC_FN}-core-dev_${ZEEK_VER}_${DEBARCH}.deb" && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/zeek${ZEEK_RC_FN}-spicy-dev_${ZEEK_VER}_${DEBARCH}.deb" && \
-          curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/zeekctl${ZEEK_RC_FN}_${ZEEK_VER}_${DEBARCH}.deb" && \
-          if [ "$ZEEK_DBG" = "1" ]; then \
-              ZEEK_DBG_FN="-dbgsym" && export ZEEK_DBG_FN && \
-              curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/zeek${ZEEK_RC_FN}-core${ZEEK_DBG_FN}_${ZEEK_VER}_${DEBARCH}.deb" && \
-              curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/zeek${ZEEK_RC_FN}-core-dev${ZEEK_DBG_FN}_${ZEEK_VER}_${DEBARCH}.deb" && \
-              curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/zeek${ZEEK_RC_FN}-spicy-dev${ZEEK_DBG_FN}_${ZEEK_VER}_${DEBARCH}.deb" && \
-              curl -fsSL -O -J "https://download.opensuse.org/repositories/security:/zeek/${ZEEK_DIST}/${DEBARCH}/zeekctl${ZEEK_RC_FN}${ZEEK_DBG_FN}_${ZEEK_VER}_${DEBARCH}.deb"; \
-          fi; \
+          /usr/local/bin/zeek-deb-download.sh -o /usr/share/src/zeek/build -z "$(echo "${ZEEK_BRANCH}-${ZEEK_RELEASE_NUM}" | sed 's/^v//')" && \
           sha256sum *.deb > /zeek-sha.txt && \
           touch /spicy-sha.txt; \
     fi; \
@@ -287,15 +270,20 @@ ENV ZEEK_DISABLE_SPICY_TFTP ""
 ENV ZEEK_DISABLE_SPICY_WIREGUARD ""
 
 ADD https://raw.githubusercontent.com/mmguero/docker/master/shared/docker-uid-gid-setup.sh /usr/local/bin/docker-uid-gid-setup.sh
-ADD login.zeek "${ZEEK_DIR}"/share/zeek/site/
 ADD entrypoint.sh /usr/local/bin/
 
 RUN chmod 755 /usr/local/bin/docker-uid-gid-setup.sh && \
     groupadd --gid ${DEFAULT_GID} ${PUSER} && \
     useradd -m --uid ${DEFAULT_UID} --gid ${DEFAULT_GID} ${PUSER} && \
-    mkdir -p "${ZEEK_LOGS_DIR}" "${ZEEK_DIR}"/share/zeek/site/intel && \
+    mkdir -p "${ZEEK_LOGS_DIR}" \
+             "${ZEEK_DIR}"/share/zeek/site/intel \
+             "${ZEEK_DIR}"/share/zeek/site/custom && \
     touch "${ZEEK_DIR}"/share/zeek/site/intel/__load__.zeek && \
-    chown -R ${PUSER}:${PGROUP} "${ZEEK_LOGS_DIR}" "${ZEEK_DIR}"/share/zeek/site/intel && \
+    touch "${ZEEK_DIR}"/share/zeek/site/custom/__load__.zeek && \
+    chown -R ${PUSER}:${PGROUP} \
+        "${ZEEK_LOGS_DIR}" \
+        "${ZEEK_DIR}"/share/zeek/site/intel \
+        "${ZEEK_DIR}"/share/zeek/site/custom && \
     # make a setcap copy of zeek (zeekcap) for listening on an interface
     cp "${ZEEK_DIR}"/bin/zeek "${ZEEK_DIR}"/bin/zeekcap && \
     chown root:${PGROUP} "${ZEEK_DIR}"/bin/zeekcap && \

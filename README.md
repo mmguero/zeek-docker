@@ -14,6 +14,8 @@ Also included is a [zeek-docker.sh](zeek-docker.sh) bash wrapper script for runn
 
 If there are any `*.zeek` files in the same absolute path as `zeek-docker.sh` they will be passed along to zeek as additional scripts in addition to the default `local` policy. If any of these `*.zeek` files begins with `local` (for example, the [`local-example.zeek`](local-example.zeek) file included in this repository), then the [default](https://github.com/zeek/zeek/blob/master/scripts/site/local.zeek) `local` policy will not be used.
 
+In addition, if there is a directory named `custom` in the same absolute path as `zeek-docker.sh`, and `__load__.zeek` exists in that `custom` directory, that directory will be bind-mounted into the docker container and loaded as-is.
+
 To understand which local `*.zeek` scripts will be used when we run `zeek-docker.sh`:
 
 ```
@@ -21,12 +23,11 @@ user@host tmp › ls -l $(dirname $(realpath $(which zeek-docker.sh)))/
 total 32,768
 -rw-r--r-- 1 user user 6,852 Jun  8 07:44 Dockerfile
 -rw-r--r-- 1 user user 1,724 May 18 11:21 local-example.zeek
--rw-r--r-- 1 user user 8,874 May 18 11:21 login.zeek
 -rw-r--r-- 1 user user 1,689 Jun  8 08:58 README.md
 -rwxr-xr-x 1 user user 3,535 Jun  8 08:41 zeek-docker.sh
 ```
 
-It looks like `local-example.zeek` and `login.zeek` will be used by `zeek`. Since `local-example.zeek` is prefixed with `local`, the default `local` policy will not be used.
+It looks like `local-example.zeek` will be used by `zeek`. Since is prefixed with `local`, the default `local` policy will not be used.
 
 #### Local Intelligence Files
 

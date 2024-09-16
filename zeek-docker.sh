@@ -38,6 +38,7 @@ for FILE in *.zeek; do
   fi
 done
 [[ -d ./intel ]] && LOCAL_INTEL_DIR="$($REALPATH -e ./intel)" || LOCAL_INTEL_DIR=
+[[ -f ./custom/__load__.zeek ]] && LOCAL_CUSTOM_DIR="$($REALPATH -e ./custom)" || LOCAL_CUSTOM_DIR=
 popd >/dev/null 2>&1
 
 # pass through local environment variables beginning with ZEEK_
@@ -67,6 +68,7 @@ export BASENAME
 export SCRIPT_PATH
 export LOCAL_SCRIPT
 export LOCAL_INTEL_DIR
+export LOCAL_CUSTOM_DIR
 export LOCAL_ZEEK_ARGV="$(join_by ':' "${LOCAL_ZEEK_SCRIPTS[@]}")"
 export LOCAL_ZEEK_ENV_ARGV="$(join_by ':' "${LOCAL_ZEEK_ENV_ARGS[@]}")"
 
@@ -140,6 +142,12 @@ printf "%s\0" "$@" | $XARGS -0 -P ${MAX_ZEEK_PROCS:-4} -I XXX bash -c '
     ENV_ARGS+=( INTEL_LOAD_FILE )
   else
     INTEL_LOAD_FILE=intel_load_unused
+  fi
+
+  # mount CUSTOM directory if specified and exists
+  if [[ -d "$LOCAL_CUSTOM_DIR" ]]; then
+    MOUNT_ARGS+=( -v )
+    MOUNT_ARGS+=( "$LOCAL_CUSTOM_DIR":/opt/zeek/share/zeek/site/custom )
   fi
 
   # run zeek in a container on the provided input

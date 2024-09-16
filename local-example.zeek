@@ -16,12 +16,16 @@ global zeek_local_nets_str = getenv("ZEEK_LOCAL_NETS");
 redef Broker::default_listen_address = "127.0.0.1";
 redef ignore_checksums = T;
 
+global capture_filter_str = getenv("CAPTURE_FILTER");
+@if (capture_filter_str != "")
+  redef restrict_filters += { ["user-defined capture filter"] = capture_filter_str };
+@endif
+
 global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @if (json_format)
   redef LogAscii::use_json = T;
 @endif
 
-@load tuning/defaults
 @load frameworks/software/vulnerable
 @load frameworks/software/version-changes
 @load frameworks/software/windows-version-detection
@@ -62,17 +66,15 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @endif
 @load policy/protocols/conn/vlan-logging
 @load policy/protocols/conn/mac-logging
-# @load policy/protocols/modbus/track-memmap
 @load policy/protocols/modbus/known-masters-slaves
 @load policy/frameworks/notice/community-id
 
 # @load frameworks/files/detect-MHR
 # @load policy/misc/loaded-scripts
 
-@load ./login.zeek
-
 @load packages
 # @load intel
+@load custom
 
 event zeek_init() &priority=-5 {
 
