@@ -39,6 +39,7 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @load protocols/ftp/software
 @load protocols/http/detect-sqli
 @load protocols/http/detect-webapps
+@load protocols/http/header-names
 @load protocols/http/software
 @load protocols/http/software-browser-plugins
 @load protocols/mysql/software
@@ -96,3 +97,5 @@ event zeek_init() &priority=-5 {
   redef FTP::default_capture_password = T;
   redef SOCKS::default_capture_password = T;
 @endif
+redef HTTP::log_client_header_names = T;
+redef HTTP::log_server_header_names = T;
