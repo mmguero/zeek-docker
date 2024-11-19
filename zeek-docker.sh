@@ -49,7 +49,7 @@ while IFS='=' read -r ZEEK_ENV_VAR value ; do
   fi
 done < <(env)
 
-ZEEK_IMAGE=${ZEEK_IMAGE:-oci.guero.top/zeek:latest}
+ZEEK_IMAGE=${ZEEK_IMAGE:-oci.guero.org/zeek:latest}
 IMAGE_ARCH_SUFFIX="$(uname -m | sed 's/^x86_64$//' | sed 's/^arm64$/-arm64/' | sed 's/^aarch64$/-arm64/')"
 [[ -n "$IMAGE_ARCH_SUFFIX" ]] && [[ "$ZEEK_IMAGE" != *"$IMAGE_ARCH_SUFFIX" ]] && ZEEK_IMAGE="${ZEEK_IMAGE}${IMAGE_ARCH_SUFFIX}"
 export ZEEK_IMAGE

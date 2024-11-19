@@ -137,7 +137,7 @@ Note that interrupting `zeek-docker.sh` with **`CTRL+C`** will leave the contain
 ```
 user@host tmp › docker ps
 CONTAINER ID   IMAGE                         COMMAND                  CREATED              STATUS              PORTS     NAMES
-df08f961e760   oci.guero.top/zeek:latest   "/usr/local/bin/dock…"   About a minute ago   Up About a minute             flamboyant_spence
+df08f961e760   oci.guero.org/zeek:latest   "/usr/local/bin/dock…"   About a minute ago   Up About a minute             flamboyant_spence
 
 user@host tmp › docker stop flamboyant_spence 
 flamboyant_spence
@@ -170,7 +170,7 @@ For each network interface monitored, a directory (suffixed with `_logs`) will b
      -v "$(pwd):/zeek-logs" \
      --network host \
      --cap-add=NET_ADMIN --cap-add=NET_RAW --cap-add=IPC_LOCK \
-     oci.guero.top/zeek:latest \
+     oci.guero.org/zeek:latest \
      zeekcap -i enp6s0 local
 ```
 
@@ -180,7 +180,7 @@ For each network interface monitored, a directory (suffixed with `_logs`) will b
    docker run --rm \
      -v "$(pwd):/zeek-logs" \
      -v "/path/containing/pcap:/data:ro" \
-     oci.guero.top/zeek:latest \
+     oci.guero.org/zeek:latest \
      zeek -C -r /data/foobar.pcap local
 ```
 
@@ -191,7 +191,7 @@ For each network interface monitored, a directory (suffixed with `_logs`) will b
      -v "$(pwd):/zeek-logs" \
      -v "/path/containing/pcap:/data:ro" \
      -v "/path/containing/policy/local-example.zeek:/opt/zeek/share/zeek/site/local.zeek:ro" \
-     oci.guero.top/zeek:latest \
+     oci.guero.org/zeek:latest \
      zeek -C -r /data/foobar.pcap local
 ```
 
@@ -200,7 +200,7 @@ For each network interface monitored, a directory (suffixed with `_logs`) will b
 Here's an example `Dockerfile` installing [`zeek/spicy-analyzers`](https://github.com/zeek/spicy-analyzers).
 
 ```
-FROM oci.guero.top/zeek:latest
+FROM oci.guero.org/zeek:latest
 
 RUN zkg install --force spicy-analyzers
 ```
@@ -210,7 +210,7 @@ Build and check:
 ```
 user@host tmp › docker build -t=spicier .
 Sending build context to Docker daemon  2.048kB
-Step 1/2 : FROM oci.guero.top/zeek:latest
+Step 1/2 : FROM oci.guero.org/zeek:latest
  ---> 1a2ccddc1428
 Step 2/2 : RUN zkg install --force spicy-analyzers
  ---> Running in 9f7121dc5248
@@ -257,14 +257,14 @@ After building your derivative image, you could run it directly or run `zeek-doc
 The [GitHub workflows](.github/workflows) in this repository build and tag the following images:
 
 * AMD64
-   - `oci.guero.top/zeek:latest` and `oci.guero.top/zeek:v7.0.0`
-   - `oci.guero.top/zeek:latest-debug` and `oci.guero.top/zeek:v7.0.0-debug`
-   - `oci.guero.top/zeek:plus` and `oci.guero.top/zeek:v7.0.0-plus`
-   - `oci.guero.top/zeek:master`
-   - `oci.guero.top/zeek:master-debug`
+   - `oci.guero.org/zeek:latest` and `oci.guero.org/zeek:v7.0.0`
+   - `oci.guero.org/zeek:latest-debug` and `oci.guero.org/zeek:v7.0.0-debug`
+   - `oci.guero.org/zeek:plus` and `oci.guero.org/zeek:v7.0.0-plus`
+   - `oci.guero.org/zeek:master`
+   - `oci.guero.org/zeek:master-debug`
 * ARM64
-   - `oci.guero.top/zeek:latest-arm64` and `oci.guero.top/zeek:v7.0.0-arm64`
-   - `oci.guero.top/zeek:latest-debug-arm64` and `oci.guero.top/zeek:v7.0.0-debug-arm64`
-   - `oci.guero.top/zeek:plus-arm64` and `oci.guero.top/zeek:v7.0.0-plus-arm64`
-   - `oci.guero.top/zeek:master-arm64`
-   - `oci.guero.top/zeek:master-debug-arm64`
+   - `oci.guero.org/zeek:latest-arm64` and `oci.guero.org/zeek:v7.0.0-arm64`
+   - `oci.guero.org/zeek:latest-debug-arm64` and `oci.guero.org/zeek:v7.0.0-debug-arm64`
+   - `oci.guero.org/zeek:plus-arm64` and `oci.guero.org/zeek:v7.0.0-plus-arm64`
+   - `oci.guero.org/zeek:master-arm64`
+   - `oci.guero.org/zeek:master-debug-arm64`
