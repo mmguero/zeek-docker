@@ -77,13 +77,13 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
             bison \
             ca-certificates \
             ccache \
-            clang \
+            clang-19 \
             cmake \
             curl \
             flex \
             git \
-            libc++-dev \
-            libc++abi-dev \
+            libc++-19-dev \
+            libc++abi-19-dev \
             libfl-dev \
             libgoogle-perftools-dev \
             libgoogle-perftools4 \
@@ -181,14 +181,14 @@ RUN export BINARCH=$(uname -m) && \
         binutils \
         ca-certificates \
         ccache \
-        clang \
+        clang-19 \
         cmake \
         curl \
         fd-find \
         file \
         git \
-        libc++-dev \
-        libc++abi-dev \
+        libc++-19-dev \
+        libc++abi-19-dev \
         libcap2-bin \
         libfl-dev \
         libfl2 \
