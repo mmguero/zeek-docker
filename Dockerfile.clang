@@ -30,19 +30,17 @@
 #     zeek -C -r /data/foobar.pcap local
 
 ########################################################################################################################
-ARG TARGETPLATFORM=linux/amd64
-
-FROM --platform=${TARGETPLATFORM} debian:12-slim as build
+FROM debian:trixie-slim AS build
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
-ARG ZEEK_DIST=Debian_12
+ARG ZEEK_DIST=Debian_Testing
 ARG ZEEK_BRANCH=v7.2.2
 ARG ZEEK_RELEASE_NUM=0
 ARG ZEEK_RC=0
 ARG ZEEK_DBG=0
-ENV ZEEK_DIR $ZEEK_DIST
+ENV ZEEK_DIST $ZEEK_DIST
 ENV ZEEK_BRANCH $ZEEK_BRANCH
 ENV ZEEK_RELEASE_NUM $ZEEK_RELEASE_NUM
 ENV ZEEK_RC $ZEEK_RC
@@ -128,14 +126,17 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
             curl && \
         mkdir -p /usr/share/src/zeek/build && \
         cd /usr/share/src/zeek/build && \
-          /usr/local/bin/zeek-deb-download.sh -o /usr/share/src/zeek/build -z "$(echo "${ZEEK_BRANCH}-${ZEEK_RELEASE_NUM}" | sed 's/^v//')" && \
+          /usr/local/bin/zeek-deb-download.sh \
+            -o /usr/share/src/zeek/build \
+            -d "${ZEEK_DIST}" \
+            -z "$(echo "${ZEEK_BRANCH}-${ZEEK_RELEASE_NUM}" | sed 's/^v//')" && \
           sha256sum *.deb > /zeek-sha.txt && \
           touch /spicy-sha.txt; \
     fi; \
     ls -lh /usr/share/src/zeek/build/ | tail -n +2 | cat -n
 
 ########################################################################################################################
-FROM --platform=${TARGETPLATFORM} debian:12-slim as base
+FROM debian:trixie-slim AS base
 
 
 LABEL maintainer="mero.mero.guero@gmail.com"
@@ -199,6 +200,7 @@ RUN export BINARCH=$(uname -m) && \
         libpcap-dev \
         libssl-dev \
         libtcmalloc-minimal4 \
+        libzmq5 \
         make \
         openssl \
         procps \
@@ -296,7 +298,7 @@ WORKDIR "${ZEEK_LOGS_DIR}"
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-uid-gid-setup.sh", "/usr/local/bin/entrypoint.sh"]
 
 ########################################################################################################################
-FROM base as plus
+FROM base AS plus
 
 
 LABEL maintainer="mero.mero.guero@gmail.com"
