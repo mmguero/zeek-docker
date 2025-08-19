@@ -2,18 +2,18 @@
 name: zeek-build-push-master-ghcr
 
 on:
-  push:
-    branches:
-      - 'main'
-    paths:
-      - '**'
-      - '!**.md'
-      - '!zeek-docker.sh'
-  pull_request:
+  # push:
+  #   branches:
+  #     - 'main'
+  #   paths:
+  #     - '**'
+  #     - '!**.md'
+  #     - '!zeek-docker.sh'
+  # pull_request:
   workflow_dispatch:
-  repository_dispatch:
-  schedule:
-    - cron: '0 12 * * *'
+  # repository_dispatch:
+  # schedule:
+  #   - cron: '0 12 * * *'
 
 env:
   REGISTRY: ghcr.io
