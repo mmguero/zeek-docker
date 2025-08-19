@@ -71,6 +71,7 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
             ca-certificates \
             ccache \
             cmake \
+            cppzmq-dev \
             curl \
             flex \
             g++ \
@@ -85,6 +86,8 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
             libpcap-dev \
             libssl-dev \
             libtcmalloc-minimal4 \
+            libzmq3-dev \
+            libzmq5 \
             make \
             ninja-build \
             python3 \
@@ -172,6 +175,7 @@ RUN export BINARCH=$(uname -m) && \
         ca-certificates \
         ccache \
         cmake \
+        cppzmq-dev \
         curl \
         fd-find \
         file \
@@ -188,6 +192,7 @@ RUN export BINARCH=$(uname -m) && \
         libpcap-dev \
         libssl-dev \
         libtcmalloc-minimal4 \
+        libzmq3-dev \
         libzmq5 \
         make \
         openssl \
