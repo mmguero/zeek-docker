@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@v4
       -
         name: Generate arch tag suffix
-        id: arch-tag-suffix
+        id: arch_tag_suffix
         shell: bash
         run: echo "archtag=$([[ "${{ matrix.platform }}" == 'linux/amd64' ]] && echo '' || ( echo -n '-' ; echo "${{ matrix.platform }}" | cut -d '/' -f 2) )" >> $GITHUB_OUTPUT
       -
