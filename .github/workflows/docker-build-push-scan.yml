@@ -102,23 +102,24 @@ jobs:
         run: |
           # extract the "clang" or "gcc" part from the Dockerfile
           suffix=$(basename "${{ matrix.dockerfile }}" | sed 's/^Dockerfile\.//')
+           [ "${{ inputs.debug_build }}" == "1" ] && tag_suffix="-dbg" || tag_suffix=""
           tags=
           plus_tags=
 
           if [ "$suffix" == "clang" ]; then
             if [ "${{ inputs.zeek_branch }}" == "${{ env.ZEEK_LATEST_BRANCH }}" ]; then
-              tags="${{ inputs.image_name }}:latest${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:latest-clang${{ steps.arch-tag-suffix.outputs.archtag }},"
-              plus_tags="${{ inputs.image_name }}:plus${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:plus-clang${{ steps.arch-tag-suffix.outputs.archtag }},"
+              tags="${{ inputs.image_name }}:latest${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,${{ inputs.image_name }}:latest-clang${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,"
+              plus_tags="${{ inputs.image_name }}:plus${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,${{ inputs.image_name }}:plus-clang${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,"
             fi
-            tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:${{ inputs.zeek_branch }}-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
-            plus_tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
+            tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,${{ inputs.image_name }}:${{ inputs.zeek_branch }}-clang${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix"
+            plus_tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus-clang${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix"
           else
             if [ "${{ inputs.zeek_branch }}" == "${{ env.ZEEK_LATEST_BRANCH }}" ]; then
-              tags="${{ inputs.image_name }}:latest-gcc${{ steps.arch-tag-suffix.outputs.archtag }},"
-              plus_tags="${{ inputs.image_name }}:plus-gcc${{ steps.arch-tag-suffix.outputs.archtag }},"
+              tags="${{ inputs.image_name }}:latest-gcc${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,"
+              plus_tags="${{ inputs.image_name }}:plus-gcc${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,"
             fi
-            tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-gcc${{ steps.arch-tag-suffix.outputs.archtag }}"
-            plus_tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus-gcc${{ steps.arch-tag-suffix.outputs.archtag }}"
+            tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-gcc${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix"
+            plus_tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus-gcc${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix"
           fi
 
           echo "tags=$tags" >> $GITHUB_OUTPUT
