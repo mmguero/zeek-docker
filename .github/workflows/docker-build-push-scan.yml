@@ -30,7 +30,7 @@ on:
       zeek_branch:
         required: false
         type: string
-        default: ${{ env.ZEEK_LATEST_BRANCH }}
+        default: $ZEEK_LATEST_BRANCH
       spicy_branch:
         required: false
         type: string
