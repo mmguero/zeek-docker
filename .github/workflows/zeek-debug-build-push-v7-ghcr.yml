@@ -1,5 +1,5 @@
 ---
-name: zeek-debug-build-push-latest-ghcr
+name: zeek-debug-build-push-v7-ghcr
 
 on:
   push:
@@ -19,6 +19,7 @@ jobs:
   docker:
     uses: ./.github/workflows/docker-build-push-scan.yml
     with:
+      zeek_branch: v7.2.2
       debug_build: 1
     secrets:
       maxmind_license_key: ${{ secrets.MAXMIND_GEOIP_DB_LICENSE_KEY }}
