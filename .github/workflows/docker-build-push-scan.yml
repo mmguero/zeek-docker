@@ -1,6 +1,9 @@
 ---
 name: docker-build-push-scan
 
+env:
+  ZEEK_LATEST_BRANCH: v8.0.1
+
 on:
   workflow_call:
     inputs:
@@ -27,7 +30,7 @@ on:
       zeek_branch:
         required: false
         type: string
-        default: v8.0.0
+        default: ${{ env.ZEEK_LATEST_BRANCH }}
       spicy_branch:
         required: false
         type: string
@@ -102,14 +105,14 @@ jobs:
           plus_tags=
 
           if [ "$suffix" == "clang" ]; then
-            if [ "${{ inputs.zeek_branch }}" == "v8.0.0" ]; then
+            if [ "${{ inputs.zeek_branch }}" == "${{ env.ZEEK_LATEST_BRANCH }}" ]; then
               tags="${{ inputs.image_name }}:latest${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:latest-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
               plus_tags="${{ inputs.image_name }}:plus${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:plus-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
             fi
             tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:${{ inputs.zeek_branch }}-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
             plus_tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
           else
-            if [ "${{ inputs.zeek_branch }}" == "v8.0.0" ]; then
+            if [ "${{ inputs.zeek_branch }}" == "${{ env.ZEEK_LATEST_BRANCH }}" ]; then
               tags="${{ inputs.image_name }}:latest-gcc${{ steps.arch-tag-suffix.outputs.archtag }}"
               plus_tags="${{ inputs.image_name }}:plus-gcc${{ steps.arch-tag-suffix.outputs.archtag }}"
             fi
