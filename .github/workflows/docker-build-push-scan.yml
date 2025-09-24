@@ -2,6 +2,7 @@
 name: docker-build-push-scan
 
 env:
+  # when changing this value, also change below in inputs.zeek_branch
   ZEEK_LATEST_BRANCH: v8.0.1
 
 on:
@@ -30,7 +31,7 @@ on:
       zeek_branch:
         required: false
         type: string
-        default: $ZEEK_LATEST_BRANCH
+        default: v8.0.1
       spicy_branch:
         required: false
         type: string
