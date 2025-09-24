@@ -1,0 +1,232 @@
+---
+name: docker-build-push-scan
+
+on:
+  workflow_call:
+    inputs:
+      registry:
+        required: false
+        type: string
+        default: ghcr.io
+      image_name:
+        required: false
+        type: string
+        default: ghcr.io/${{ github.repository_owner }}/zeek
+      build_from_source:
+        required: false
+        type: number
+        default: 1
+      build_jobs:
+        required: false
+        type: number
+        default: 2
+      debug_build:
+        required: false
+        type: number
+        default: 0
+      zeek_branch:
+        required: false
+        type: string
+        default: v8.0.0
+      spicy_branch:
+        required: false
+        type: string
+      extra_build_args:
+        required: false
+        type: string
+    secrets:
+      maxmind_license_key:
+        required: false
+      maxmind_alternate_url:
+        required: false
+      zeek_deb_alternate_download_url:
+        required: false
+
+jobs:
+  docker:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      actions: write
+      packages: write
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Clang builds
+          - os: ubuntu-24.04
+            arch: amd64
+            platform: linux/amd64
+            dockerfile: ./Dockerfile.clang
+          - os: ubuntu-24.04-arm
+            arch: arm64
+            platform: linux/arm64
+            dockerfile: ./Dockerfile.clang
+          # GCC builds
+          - os: ubuntu-24.04
+            arch: amd64
+            platform: linux/amd64
+            dockerfile: ./Dockerfile.gcc
+          - os: ubuntu-24.04-arm
+            arch: arm64
+            platform: linux/arm64
+            dockerfile: ./Dockerfile.gcc
+
+    steps:
+      -
+        name: Cancel previous run in progress
+        id: cancel-previous-runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          ignore_sha: true
+          all_but_latest: true
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Checkout
+        id: repo-checkout
+        uses: actions/checkout@v4
+      -
+        name: Generate arch tag suffix
+        id: arch-tag-suffix
+        shell: bash
+        run: echo "archtag=$([[ "${{ matrix.platform }}" == 'linux/amd64' ]] && echo '' || ( echo -n '-' ; echo "${{ matrix.platform }}" | cut -d '/' -f 2) )" >> $GITHUB_OUTPUT
+      -
+        name: Generate image tags
+        id: image-tags
+        shell: bash
+        run: |
+          # extract the "clang" or "gcc" part from the Dockerfile
+          suffix=$(basename "${{ matrix.dockerfile }}" | sed 's/^Dockerfile\.//')
+          tags=
+          plus_tags=
+
+          if [ "$suffix" == "clang" ]; then
+            if [ "${{ input.zeek_branch }}" == "v8.0.0" ]; then
+              tags="${{ inputs.image_name }}:latest${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:latest-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
+              plus_tags="${{ inputs.image_name }}:plus${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:plus-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
+            fi
+            tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:${{ inputs.zeek_branch }}-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
+            plus_tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus${{ steps.arch-tag-suffix.outputs.archtag }},${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus-clang${{ steps.arch-tag-suffix.outputs.archtag }}"
+          else
+            if [ "${{ input.zeek_branch }}" == "v8.0.0" ]; then
+              tags="${{ inputs.image_name }}:latest-gcc${{ steps.arch-tag-suffix.outputs.archtag }}"
+              plus_tags="${{ inputs.image_name }}:plus-gcc${{ steps.arch-tag-suffix.outputs.archtag }}"
+            fi
+            tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-gcc${{ steps.arch-tag-suffix.outputs.archtag }}"
+            plus_tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus-gcc${{ steps.arch-tag-suffix.outputs.archtag }}"
+          fi
+
+          echo "tags=$tags" >> $GITHUB_OUTPUT
+          echo "plus_tags=$plus_tags" >> $GITHUB_OUTPUT
+      -
+        name: Set up Docker Buildx
+        id: docker-buildx-setup
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:master
+      -
+        name: Log in to registry
+        id: registry-login
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Build base image
+        id: build-base-image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          provenance: false
+          platforms: ${{ matrix.platform }}
+          target: base
+          tags: ${{ steps.image-tags.outputs.tags }}
+          build-args: |
+            BUILD_FROM_SOURCE=${{ inputs.build_from_source }}
+            BUILD_JOBS=${{ inputs.build_jobs }}
+            TARGETPLATFORM=${{ matrix.platform }}
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            ZEEK_BRANCH=${{ inputs.zeek_branch }}
+            ZEEK_DBG=${{ inputs.debug_build }}
+            ${{ secrets.maxmind_license_key && format('MAXMIND_GEOIP_DB_LICENSE_KEY={0}', secrets.maxmind_license_key) || '' }}
+            ${{ secrets.maxmind_alternate_url && format('MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL={0}', secrets.maxmind_alternate_url) || '' }}
+            ${{ secrets.zeek_deb_alternate_download_url && format('ZEEK_DEB_ALTERNATE_DOWNLOAD_URL={0}', secrets.zeek_deb_alternate_download_url) || '' }}
+            ${{ inputs.extra_build_args || '' }}
+      -
+        name: Build plus image
+        id: build-plus-image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          provenance: false
+          platforms: ${{ matrix.platform }}
+          target: plus
+          tags: ${{ steps.image-tags.outputs.plus_tags }}
+          build-args: |
+            BUILD_FROM_SOURCE=${{ inputs.build_from_source }}
+            BUILD_JOBS=${{ inputs.build_jobs }}
+            TARGETPLATFORM=${{ matrix.platform }}
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            ZEEK_BRANCH=${{ inputs.zeek_branch }}
+            ZEEK_DBG=${{ inputs.debug_build }}
+            ${{ secrets.maxmind_license_key && format('MAXMIND_GEOIP_DB_LICENSE_KEY={0}', secrets.maxmind_license_key) || '' }}
+            ${{ secrets.maxmind_alternate_url && format('MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL={0}', secrets.maxmind_alternate_url) || '' }}
+            ${{ secrets.zeek_deb_alternate_download_url && format('ZEEK_DEB_ALTERNATE_DOWNLOAD_URL={0}', secrets.zeek_deb_alternate_download_url) || '' }}
+            ${{ inputs.extra_build_args || '' }}
+      -
+        name: Run Trivy vulnerability scanner (GCC)
+        if: ${{ matrix.platform == 'linux/amd64' }}
+        id: trivy-scan-gcc
+        uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
+        with:
+          scan-type: 'image'
+          scanners: 'vuln'
+          image-ref: ${{ inputs.image_name }}:${{ inputs.zeek_branch }}-gcc${{ steps.arch-tag-suffix.outputs.archtag }}
+          format: 'sarif'
+          output: 'trivy-results-gcc.sarif'
+          severity: 'HIGH,CRITICAL'
+          vuln-type: 'os,library'
+          hide-progress: true
+          ignore-unfixed: true
+          exit-code: '0'
+      -
+        name: Run Trivy vulnerability scanner (clang)
+        if: ${{ matrix.platform == 'linux/amd64' }}
+        id: trivy-scan-clang
+        uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
+        with:
+          scan-type: 'image'
+          scanners: 'vuln'
+          image-ref: ${{ inputs.image_name }}:${{ inputs.zeek_branch }}-clang${{ steps.arch-tag-suffix.outputs.archtag }}
+          format: 'sarif'
+          output: 'trivy-results-clang.sarif'
+          severity: 'HIGH,CRITICAL'
+          vuln-type: 'os,library'
+          hide-progress: true
+          ignore-unfixed: true
+          exit-code: '0'
+      -
+        name: Upload Trivy scan results to GitHub Security tab (GCC)
+        id: trivy-push-gcc
+        if: ${{ matrix.platform == 'linux/amd64' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results-gcc.sarif'
+      -
+        name: Upload Trivy scan results to GitHub Security tab (clang)
+        id: trivy-push-clang
+        if: ${{ matrix.platform == 'linux/amd64' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results-gcc.sarif'

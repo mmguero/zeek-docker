@@ -65,6 +65,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 COPY --chmod=755 zeek-deb-download.sh /usr/local/bin/
+COPY --chmod=755 maxmind-mmdb-download.sh /usr/local/bin/
 
 RUN export DEBARCH=$(dpkg --print-architecture) && \
     apt-get -q update && \
@@ -235,14 +236,8 @@ RUN export BINARCH=$(uname -m) && \
     cd /usr/bin && \
         curl -sSL "https://github.com/eza-community/eza/releases/latest/download/eza_${BINARCH}-unknown-linux-gnu.tar.gz" | tar xzvf - >/dev/null 2>&1 && \
         chmod 755 /usr/bin/eza && \
-    [ ${#MAXMIND_GEOIP_DB_LICENSE_KEY} -gt 1 ] && for DB in ASN Country City; do \
-          cd /tmp && \
-          curl -s -S -L -o "GeoLite2-$DB.mmdb.tar.gz" "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-$DB&license_key=$MAXMIND_GEOIP_DB_LICENSE_KEY&suffix=tar.gz" && \
-          tar xf "GeoLite2-$DB.mmdb.tar.gz" --wildcards --no-anchored '*.mmdb' --strip=1 && \
-          mkdir -p /usr/share/GeoIP/ && \
-          mv -v "GeoLite2-$DB.mmdb" /usr/share/GeoIP/; \
-          rm -f "GeoLite2-$DB*"; \
-        done; \
+    mkdir -p /usr/share/GeoIP && \
+        ( /usr/local/bin/maxmind-mmdb-download.sh -o /usr/share/GeoIP || true ) && \
     cd /tmp && \
     apt-get -q -y autoremove && \
       apt-get clean && \
