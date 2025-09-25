@@ -187,7 +187,7 @@ jobs:
             ${{ inputs.extra_build_args || '' }}
       -
         name: Run Trivy vulnerability scanner (GCC)
-        if: ${{ matrix.platform == 'linux/amd64' }}
+        if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         id: trivy-scan-gcc
         uses: aquasecurity/trivy-action@master
         env:
@@ -205,7 +205,7 @@ jobs:
           exit-code: '0'
       -
         name: Run Trivy vulnerability scanner (clang)
-        if: ${{ matrix.platform == 'linux/amd64' }}
+        if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         id: trivy-scan-clang
         uses: aquasecurity/trivy-action@master
         env:
@@ -224,14 +224,16 @@ jobs:
       -
         name: Upload Trivy scan results to GitHub Security tab (GCC)
         id: trivy-push-gcc
-        if: ${{ matrix.platform == 'linux/amd64' }}
+        if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results-gcc.sarif'
+          category: zeek-${{ inputs.zeek_branch }}-gcc${{ steps.arch-tag-suffix.outputs.archtag }}
       -
         name: Upload Trivy scan results to GitHub Security tab (clang)
         id: trivy-push-clang
-        if: ${{ matrix.platform == 'linux/amd64' }}
+        if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'trivy-results-gcc.sarif'
+          sarif_file: 'trivy-results-clang.sarif'
+          category: zeek-${{ inputs.zeek_branch }}-gcc${{ steps.arch-tag-suffix.outputs.archtag }}
