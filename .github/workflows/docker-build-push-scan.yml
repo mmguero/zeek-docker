@@ -236,4 +236,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results-clang.sarif'
-          category: zeek-${{ inputs.zeek_branch }}-gcc${{ steps.arch-tag-suffix.outputs.archtag }}
+          category: zeek-${{ inputs.zeek_branch }}-clang${{ steps.arch-tag-suffix.outputs.archtag }}
