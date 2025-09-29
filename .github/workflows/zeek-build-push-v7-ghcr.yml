@@ -19,7 +19,7 @@ jobs:
   docker:
     uses: ./.github/workflows/docker-build-push-scan.yml
     with:
-      zeek_branch: v7.2.2
+      zeek_branch: v7.0.10
     secrets:
       maxmind_license_key: ${{ secrets.MAXMIND_GEOIP_DB_LICENSE_KEY }}
       maxmind_alternate_url: ${{ secrets.MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL }}
