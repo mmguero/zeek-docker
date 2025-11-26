@@ -81,10 +81,15 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
             libfl-dev \
             libgoogle-perftools-dev \
             libgoogle-perftools4 \
+            libhiredis-dev \
+            libhiredis1.1.0 \
             libkrb5-3 \
             libkrb5-dev \
             libmaxminddb-dev \
             libpcap-dev \
+            librdkafka++1 \
+            librdkafka-dev \
+            librdkafka1 \
             libssl-dev \
             libtcmalloc-minimal4 \
             libzmq3-dev \
