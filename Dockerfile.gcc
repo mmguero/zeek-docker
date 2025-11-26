@@ -193,8 +193,11 @@ RUN export BINARCH=$(uname -m) && \
         libfl2 \
         libgoogle-perftools-dev \
         libgoogle-perftools4 \
+        libhiredis-dev \
+        libhiredis1.1.0 \
         libkrb5-dev \
         libmaxminddb-dev \
+        libnode-dev \
         libpcap-dev \
         libssl-dev \
         libtcmalloc-minimal4 \

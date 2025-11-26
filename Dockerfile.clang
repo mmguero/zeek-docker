@@ -85,13 +85,14 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
             libc++-19-dev \
             libc++abi-19-dev \
             libfl-dev \
-            libhiredis-dev \
-            libhiredis1.1.0 \
             libgoogle-perftools-dev \
             libgoogle-perftools4 \
+            libhiredis-dev \
+            libhiredis1.1.0 \
             libkrb5-3 \
             libkrb5-dev \
             libmaxminddb-dev \
+            libnode-dev \
             libpcap-dev \
             librdkafka++1 \
             librdkafka-dev \
