@@ -92,7 +92,6 @@ RUN export DEBARCH=$(dpkg --print-architecture) && \
             libkrb5-3 \
             libkrb5-dev \
             libmaxminddb-dev \
-            libnode-dev \
             libpcap-dev \
             librdkafka++1 \
             librdkafka-dev \
