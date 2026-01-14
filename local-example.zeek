@@ -7,10 +7,8 @@
 global true_regex: pattern = /^\s*(?i:t(rue)?|y(es)?|on|1)\s*$/;
 
 global disable_stats = (getenv("ZEEK_DISABLE_STATS") == true_regex) ? T : F;
-global disable_hash_all_files = (getenv("ZEEK_DISABLE_HASH_ALL_FILES") == true_regex) ? T : F;
 global disable_log_passwords = (getenv("ZEEK_DISABLE_LOG_PASSWORDS") == true_regex) ? T : F;
 global disable_ssl_validate_certs = (getenv("ZEEK_DISABLE_SSL_VALIDATE_CERTS") == true_regex) ? T : F;
-global disable_track_all_assets = (getenv("ZEEK_DISABLE_TRACK_ALL_ASSETS") == true_regex) ? T : F;
 global zeek_local_nets_str = getenv("ZEEK_LOCAL_NETS");
 
 redef Broker::default_listen_address = "127.0.0.1";
@@ -55,12 +53,8 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @if (!disable_ssl_validate_certs)
   @load protocols/ssl/validate-certs
 @endif
-@if (!disable_track_all_assets)
-  @load tuning/track-all-assets.zeek
-@endif
-@if (!disable_hash_all_files)
-  @load frameworks/files/hash-all-files
-@endif
+@load tuning/track-all-assets.zeek
+@load frameworks/files/hash-all-files
 @if (!disable_stats)
   @load policy/misc/stats
   @load policy/misc/capture-loss
@@ -69,9 +63,6 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @load policy/protocols/conn/mac-logging
 @load policy/protocols/modbus/known-masters-slaves
 @load policy/frameworks/notice/community-id
-
-# @load frameworks/files/detect-MHR
-# @load policy/misc/loaded-scripts
 
 @load packages
 @load custom
@@ -90,6 +81,10 @@ event zeek_init() &priority=-5 {
     }
   }
 
+}
+
+event file_new(f: fa_file) &priority=-5 {
+  Files::add_analyzer(f, Files::ANALYZER_SHA256);
 }
 
 @if (!disable_log_passwords)

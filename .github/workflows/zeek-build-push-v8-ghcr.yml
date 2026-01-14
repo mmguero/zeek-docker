@@ -1,0 +1,26 @@
+---
+name: zeek-build-push-v8-ghcr
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - '**'
+      - '!**.md'
+      - '!zeek-docker.sh'
+  pull_request:
+  workflow_dispatch:
+  repository_dispatch:
+  schedule:
+    - cron: '0 12 * * *'
+
+jobs:
+  docker:
+    uses: ./.github/workflows/docker-build-push-scan.yml
+    with:
+      zeek_branch: v8.0.5
+    secrets:
+      maxmind_license_key: ${{ secrets.MAXMIND_GEOIP_DB_LICENSE_KEY }}
+      maxmind_alternate_url: ${{ secrets.MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL }}
+      zeek_deb_alternate_download_url: ${{ secrets.ZEEK_DEB_ALTERNATE_DOWNLOAD_URL }}
