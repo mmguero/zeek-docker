@@ -189,7 +189,7 @@ jobs:
         name: Run Trivy vulnerability scanner (GCC)
         if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         id: trivy-scan-gcc
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         env:
           TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
         with:
@@ -207,7 +207,7 @@ jobs:
         name: Run Trivy vulnerability scanner (clang)
         if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         id: trivy-scan-clang
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         env:
           TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
         with:
