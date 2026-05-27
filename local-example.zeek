@@ -9,7 +9,9 @@ global true_regex: pattern = /^\s*(?i:t(rue)?|y(es)?|on|1)\s*$/;
 global disable_stats = (getenv("ZEEK_DISABLE_STATS") == true_regex) ? T : F;
 global disable_log_passwords = (getenv("ZEEK_DISABLE_LOG_PASSWORDS") == true_regex) ? T : F;
 global disable_ssl_validate_certs = (getenv("ZEEK_DISABLE_SSL_VALIDATE_CERTS") == true_regex) ? T : F;
-global zeek_local_nets_str = getenv("ZEEK_LOCAL_NETS");
+global disable_track_all_assets = (getenv("ZEEK_DISABLE_TRACK_ALL_ASSETS") == true_regex) ? T : F;
+global local_nets_str = getenv("ZEEK_LOCAL_NETS");
+global file_analyzer_timeout = double_to_interval((getenv("ZEEK_FILE_ANALYZER_TIMEOUT_SEC") == "") ? 5.0 : to_double(getenv("ZEEK_FILE_ANALYZER_TIMEOUT_SEC")));
 
 redef Broker::default_listen_address = "127.0.0.1";
 redef ignore_checksums = T;
@@ -35,7 +37,7 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @load protocols/ftp/detect
 @load protocols/ftp/detect-bruteforcing.zeek
 @load protocols/ftp/software
-@load protocols/http/detect-sqli
+@load protocols/http/detect-sql-injection
 @load protocols/http/detect-webapps
 @load protocols/http/header-names
 @load protocols/http/software
@@ -53,7 +55,10 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @if (!disable_ssl_validate_certs)
   @load protocols/ssl/validate-certs
 @endif
-@load tuning/track-all-assets.zeek
+@if (!disable_track_all_assets)
+  @load tuning/track-all-assets.zeek
+@endif
+@load base/files/hash
 @load frameworks/files/hash-all-files
 @if (!disable_stats)
   @load policy/misc/stats
@@ -67,10 +72,14 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @load packages
 @load custom
 
+# Default amount of time a file can be inactive before the file analysis
+#   gives up and discards any internal state related to the file.
+redef default_file_timeout_interval = file_analyzer_timeout;
+
 event zeek_init() &priority=-5 {
 
-  if (zeek_local_nets_str != "") {
-    local nets_strs = split_string(zeek_local_nets_str, /,/);
+  if (local_nets_str != "") {
+    local nets_strs = split_string(local_nets_str, /,/);
     if (|nets_strs| > 0) {
       for (net_idx in nets_strs) {
         local local_subnet = to_subnet(nets_strs[net_idx]);
@@ -81,10 +90,6 @@ event zeek_init() &priority=-5 {
     }
   }
 
-}
-
-event file_new(f: fa_file) &priority=-5 {
-  Files::add_analyzer(f, Files::ANALYZER_SHA256);
 }
 
 @if (!disable_log_passwords)
