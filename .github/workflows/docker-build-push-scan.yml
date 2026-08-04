@@ -1,10 +1,8 @@
 ---
 name: docker-build-push-scan
-
 env:
   # when changing this value, also change below in inputs.zeek_branch
   ZEEK_LATEST_BRANCH: v8.2.1
-
 on:
   workflow_call:
     inputs:
@@ -45,12 +43,13 @@ on:
         required: false
       zeek_deb_alternate_download_url:
         required: false
-
+concurrency:
+  group: ${{ inputs.image_name }}-${{ inputs.zeek_branch }}-${{ inputs.debug_build }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   docker:
     runs-on: ${{ matrix.os }}
     permissions:
-      actions: write
       packages: write
       contents: read
       security-events: write
@@ -76,27 +75,15 @@ jobs:
             arch: arm64
             platform: linux/arm64
             dockerfile: ./Dockerfile.gcc
-
     steps:
-      -
-        name: Cancel previous run in progress
-        id: cancel-previous-runs
-        uses: styfle/cancel-workflow-action@d07a454dad7609a92316b57b23c9ccfd4f59af66
-        with:
-          ignore_sha: true
-          all_but_latest: true
-          access_token: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Checkout
+      - name: Checkout
         id: repo-checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      -
-        name: Generate arch tag suffix
+      - name: Generate arch tag suffix
         id: arch-tag-suffix
         shell: bash
         run: echo "archtag=$([[ "${{ matrix.platform }}" == 'linux/amd64' ]] && echo '' || ( echo -n '-' ; echo "${{ matrix.platform }}" | cut -d '/' -f 2) )" >> $GITHUB_OUTPUT
-      -
-        name: Generate image tags
+      - name: Generate image tags
         id: image-tags
         shell: bash
         run: |
@@ -124,23 +111,20 @@ jobs:
 
           echo "tags=$tags" >> $GITHUB_OUTPUT
           echo "plus_tags=$plus_tags" >> $GITHUB_OUTPUT
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         id: docker-buildx-setup
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd
         with:
           driver-opts: |
             image=moby/buildkit:master
-      -
-        name: Log in to registry
+      - name: Log in to registry
         id: registry-login
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121
         with:
           registry: ${{ inputs.registry }}
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Build base image
+      - name: Build base image
         id: build-base-image
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f
         with:
@@ -162,8 +146,7 @@ jobs:
             ${{ secrets.maxmind_alternate_url && format('MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL={0}', secrets.maxmind_alternate_url) || '' }}
             ${{ secrets.zeek_deb_alternate_download_url && format('ZEEK_DEB_ALTERNATE_DOWNLOAD_URL={0}', secrets.zeek_deb_alternate_download_url) || '' }}
             ${{ inputs.extra_build_args || '' }}
-      -
-        name: Build plus image
+      - name: Build plus image
         id: build-plus-image
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f
         with:
@@ -185,8 +168,7 @@ jobs:
             ${{ secrets.maxmind_alternate_url && format('MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL={0}', secrets.maxmind_alternate_url) || '' }}
             ${{ secrets.zeek_deb_alternate_download_url && format('ZEEK_DEB_ALTERNATE_DOWNLOAD_URL={0}', secrets.zeek_deb_alternate_download_url) || '' }}
             ${{ inputs.extra_build_args || '' }}
-      -
-        name: Run Trivy vulnerability scanner (GCC)
+      - name: Run Trivy vulnerability scanner (GCC)
         if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         id: trivy-scan-gcc
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
@@ -203,8 +185,7 @@ jobs:
           hide-progress: true
           ignore-unfixed: true
           exit-code: '0'
-      -
-        name: Run Trivy vulnerability scanner (clang)
+      - name: Run Trivy vulnerability scanner (clang)
         if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         id: trivy-scan-clang
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
@@ -221,16 +202,14 @@ jobs:
           hide-progress: true
           ignore-unfixed: true
           exit-code: '0'
-      -
-        name: Upload Trivy scan results to GitHub Security tab (GCC)
+      - name: Upload Trivy scan results to GitHub Security tab (GCC)
         id: trivy-push-gcc
         if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba
         with:
           sarif_file: 'trivy-results-gcc.sarif'
           category: zeek-${{ inputs.zeek_branch }}-gcc${{ steps.arch-tag-suffix.outputs.archtag }}
-      -
-        name: Upload Trivy scan results to GitHub Security tab (clang)
+      - name: Upload Trivy scan results to GitHub Security tab (clang)
         id: trivy-push-clang
         if: ${{ matrix.platform == 'linux/amd64' && inputs.debug_build == 0 }}
         uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba
