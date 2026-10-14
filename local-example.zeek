@@ -10,6 +10,7 @@ global disable_stats = (getenv("ZEEK_DISABLE_STATS") == true_regex) ? T : F;
 global disable_log_passwords = (getenv("ZEEK_DISABLE_LOG_PASSWORDS") == true_regex) ? T : F;
 global disable_ssl_validate_certs = (getenv("ZEEK_DISABLE_SSL_VALIDATE_CERTS") == true_regex) ? T : F;
 global disable_track_all_assets = (getenv("ZEEK_DISABLE_TRACK_ALL_ASSETS") == true_regex) ? T : F;
+global disable_spicy_zip = (getenv("ZEEK_DISABLE_SPICY_ZIP") == true_regex) ? T : F;
 global local_nets_str = getenv("ZEEK_LOCAL_NETS");
 global file_analyzer_timeout = double_to_interval((getenv("ZEEK_FILE_ANALYZER_TIMEOUT_SEC") == "") ? 5.0 : to_double(getenv("ZEEK_FILE_ANALYZER_TIMEOUT_SEC")));
 
@@ -60,13 +61,18 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @endif
 @load base/files/hash
 @load frameworks/files/hash-all-files
+@load fuzzy-hash-all-files
 @if (!disable_stats)
   @load policy/misc/stats
   @load policy/misc/capture-loss
 @endif
 @load policy/protocols/conn/vlan-logging
 @load policy/protocols/conn/mac-logging
+@load policy/protocols/conn/multicast-participants
 @load policy/protocols/modbus/known-masters-slaves
+@if (!disable_spicy_zip)
+  @load policy/files/zip/register
+@endif
 @load policy/frameworks/notice/community-id
 
 @load packages
