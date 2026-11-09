@@ -91,26 +91,20 @@ jobs:
           suffix=$(basename "${{ matrix.dockerfile }}" | sed 's/^Dockerfile\.//')
            [ "${{ inputs.debug_build }}" == "1" ] && tag_suffix="-dbg" || tag_suffix=""
           tags=
-          plus_tags=
 
           if [ "$suffix" == "clang" ]; then
             if [ "${{ inputs.zeek_branch }}" == "${{ env.ZEEK_LATEST_BRANCH }}" ]; then
               tags="${{ inputs.image_name }}:latest${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,${{ inputs.image_name }}:latest-clang${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,"
-              plus_tags="${{ inputs.image_name }}:plus${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,${{ inputs.image_name }}:plus-clang${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,"
             fi
             tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,${{ inputs.image_name }}:${{ inputs.zeek_branch }}-clang${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix"
-            plus_tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus-clang${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix"
           else
             if [ "${{ inputs.zeek_branch }}" == "${{ env.ZEEK_LATEST_BRANCH }}" ]; then
               tags="${{ inputs.image_name }}:latest-gcc${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,"
-              plus_tags="${{ inputs.image_name }}:plus-gcc${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix,"
             fi
             tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-gcc${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix"
-            plus_tags+="${{ inputs.image_name }}:${{ inputs.zeek_branch }}-plus-gcc${{ steps.arch-tag-suffix.outputs.archtag }}$tag_suffix"
           fi
 
           echo "tags=$tags" >> $GITHUB_OUTPUT
-          echo "plus_tags=$plus_tags" >> $GITHUB_OUTPUT
       - name: Set up Docker Buildx
         id: docker-buildx-setup
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd
@@ -135,28 +129,6 @@ jobs:
           platforms: ${{ matrix.platform }}
           target: base
           tags: ${{ steps.image-tags.outputs.tags }}
-          build-args: |
-            BUILD_FROM_SOURCE=${{ inputs.build_from_source }}
-            BUILD_JOBS=${{ inputs.build_jobs }}
-            TARGETPLATFORM=${{ matrix.platform }}
-            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-            ZEEK_BRANCH=${{ inputs.zeek_branch }}
-            ZEEK_DBG=${{ inputs.debug_build }}
-            ${{ secrets.maxmind_license_key && format('MAXMIND_GEOIP_DB_LICENSE_KEY={0}', secrets.maxmind_license_key) || '' }}
-            ${{ secrets.maxmind_alternate_url && format('MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL={0}', secrets.maxmind_alternate_url) || '' }}
-            ${{ secrets.zeek_deb_alternate_download_url && format('ZEEK_DEB_ALTERNATE_DOWNLOAD_URL={0}', secrets.zeek_deb_alternate_download_url) || '' }}
-            ${{ inputs.extra_build_args || '' }}
-      - name: Build plus image
-        id: build-plus-image
-        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f
-        with:
-          context: .
-          file: ${{ matrix.dockerfile }}
-          push: true
-          provenance: false
-          platforms: ${{ matrix.platform }}
-          target: plus
-          tags: ${{ steps.image-tags.outputs.plus_tags }}
           build-args: |
             BUILD_FROM_SOURCE=${{ inputs.build_from_source }}
             BUILD_JOBS=${{ inputs.build_jobs }}
