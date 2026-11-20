@@ -61,7 +61,6 @@ global json_format = (getenv("ZEEK_JSON") == true_regex) ? T : F;
 @endif
 @load base/files/hash
 @load frameworks/files/hash-all-files
-@load fuzzy-hash-all-files
 @if (!disable_stats)
   @load policy/misc/stats
   @load policy/misc/capture-loss
